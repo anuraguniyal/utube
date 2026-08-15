@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>UTUBE • Smart YouTube Player</title>
+  <meta name="description" content="YouTube player with split-screen gesture controls, smooth playback, interactive video resizing, and clean controls." />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Ambient background glow effect -->
+  <div class="ambient-glow"></div>
+
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <!-- Left Section: Brand & Guide Button -->
+    <div class="header-left">
+      <a href="#" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
+          </svg>
+        </div>
+        <div class="brand-name">
+          <span>UTUBE</span>
+          <span class="brand-badge">Pro</span>
+        </div>
+      </a>
+
+      <!-- Guide Button on Left -->
+      <button id="openHelpBtn" class="top-left-guide-btn" title="Gesture Guide & Shortcuts (?)">
+        <span>💡 Guide</span>
+        <span class="kbd">?</span>
+      </button>
+    </div>
+
+    <!-- Middle Section: Centered URL Input & Loader -->
+    <div class="header-center">
+      <div class="url-input-container">
+        <input type="text" id="urlInput" class="url-input" placeholder="Paste YouTube URL or Video ID (e.g. youtu.be/...)" spellcheck="false" autocomplete="off" />
+        <div class="url-btn-group">
+          <button id="pasteBtn" class="btn-icon" title="Paste from Clipboard">
+            📋
+          </button>
+          <button id="loadVideoBtn" class="btn-primary">
+            <span>Play</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section: Balanced Spacer -->
+    <div class="header-right"></div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- Player Theater Container with Interactive Drag-to-Resize -->
+    <div class="player-theater-outer" id="playerTheaterOuter">
+      <div class="player-theater-wrapper" id="playerTheaterWrapper">
+        
+        <!-- Live Resize Overlay Badge -->
+        <div id="resizeBadge" class="resize-badge">
+          <span id="resizeBadgeText">1080 × 608 (16:9)</span>
+        </div>
+
+        <!-- Video Viewport with YouTube API iframe -->
+        <div class="player-video-viewport" id="videoViewport">
+          <div id="youtubePlayer"></div>
+
+          <!-- Gesture Surface Overlay -->
+          <div id="gestureOverlay" class="gesture-surface-overlay">
+            
+            <!-- Touch Point Ring -->
+            <div id="gestureRing" class="touch-ring hidden"></div>
+
+            <!-- Dynamic Split Zone HUD Overlay -->
+            <div id="gestureHud" class="gesture-hud-container">
+              
+              <!-- Split Half Highlight Overlays -->
+              <div class="hud-zones-wrapper">
+                <div id="hudZoneLeft" class="hud-zone-half zone-left">
+                  <div class="zone-watermark">⏪ REWIND</div>
+                </div>
+                <div id="hudZoneRight" class="hud-zone-half zone-right">
+                  <div class="zone-watermark">FORWARD ⏩</div>
+                </div>
+              </div>
+
+              <!-- Central Speed HUD Cluster -->
+              <div class="hud-center-cluster">
+                <div class="hud-dial-card">
+                  <!-- Vertical Speed Gauge Bar -->
+                  <div class="hud-speed-gauge-track">
+                    <div id="hudSpeedBar" class="hud-speed-gauge-bar"></div>
+                  </div>
+
+                  <!-- Center Multiplier Display -->
+                  <div class="hud-dial-center">
+                    <div id="hudCenterIcon" class="hud-center-icon">⏪</div>
+                    <div id="hudSpeedValue" class="hud-speed-value">-2.0x</div>
+                    <div id="hudSpeedMode" class="hud-speed-mode">REVERSE REWIND</div>
+                  </div>
+                </div>
+
+                <!-- Dynamic Tip Text -->
+                <div id="hudTip" class="hud-tip">
+                  ⏪ Left Zone: Rewinding at -2.0x • Drag ↑ UP Faster / ↓ DOWN Slower
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Momentary Action Feedback Toast -->
+          <div id="momentaryToast" class="momentary-toast">
+            <span>⚡ Boost 2.0x</span>
+          </div>
+        </div>
+
+        <!-- Advanced Player Controls Panel -->
+        <div class="player-controls-panel">
+          
+          <!-- Timeline Progress Bar & Scrubber with Frame Viewer -->
+          <div class="timeline-container" id="timelineContainer">
+            <!-- Floating YouTube-style Frame Viewer Card -->
+            <div id="timelineFramePreview" class="timeline-frame-preview">
+              <div class="frame-preview-card">
+                <div class="frame-preview-img-wrap">
+                  <img id="previewThumbImg" class="frame-preview-img" src="" alt="Frame Preview" />
+                  <div class="frame-preview-overlay"></div>
+                  <span id="previewThumbDelta" class="frame-preview-delta">+0:15s</span>
+                </div>
+                <div id="previewTimeBadge" class="frame-preview-timestamp">0:00</div>
+              </div>
+            </div>
+
+            <div class="timeline-track-bg">
+              <div id="timelineBuffered" class="timeline-buffered"></div>
+              <div id="timelineProgress" class="timeline-progress"></div>
+              <div id="timelineThumb" class="timeline-thumb"></div>
+            </div>
+          </div>
+
+          <!-- Primary Control Row -->
+          <div class="controls-main-row">
+            
+            <!-- Left: Play/Pause, Rewind, Skips, Time -->
+            <div class="controls-left-cluster">
+              <button id="playBtn" class="ctrl-btn-play" title="Play / Pause (Space)">
+                <span id="playBtnIcon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+              </button>
+
+              <button id="rewindLiveBtn" class="ctrl-btn ctrl-btn-rewind" title="Live Reverse Playback Engine (R)">
+                <span>⏪</span>
+                <span>Rewind Live</span>
+              </button>
+
+              <button id="jumpBack10Btn" class="ctrl-btn" title="Jump -10s (J)">-10s</button>
+              <button id="jumpBack5Btn" class="ctrl-btn" title="Jump -5s (←)">-5s</button>
+              <button id="jumpFwd5Btn" class="ctrl-btn" title="Jump +5s (→)">+5s</button>
+              <button id="jumpFwd10Btn" class="ctrl-btn" title="Jump +10s (L)">+10s</button>
+
+              <div class="time-display">
+                <span id="timeCurrent" class="current">0:00</span>
+                <span>/</span>
+                <span id="timeDuration">0:00</span>
+              </div>
+            </div>
+
+            <!-- Center: Speed Multiplier Pills -->
+            <div class="controls-center-cluster">
+              <button class="speed-pill" data-speed="0.25">0.25x</button>
+              <button class="speed-pill" data-speed="0.5">0.5x</button>
+              <button class="speed-pill active" data-speed="1">1.0x</button>
+              <button class="speed-pill" data-speed="1.25">1.25x</button>
+              <button class="speed-pill" data-speed="1.5">1.5x</button>
+              <button class="speed-pill" data-speed="2">2.0x</button>
+              <button class="speed-pill" data-speed="3">3.0x</button>
+              <button class="speed-pill" data-speed="4">4.0x</button>
+            </div>
+
+            <!-- Right: Frame Stepper, Volume, Fullscreen -->
+            <div class="controls-right-cluster">
+              <button id="prevFrameBtn" class="ctrl-btn" title="Previous Frame (J or ,)">◀ 1 Frame</button>
+              <button id="nextFrameBtn" class="ctrl-btn" title="Next Frame (K or .)">1 Frame ▶</button>
+
+              <div class="volume-cluster">
+                <button id="muteBtn" class="btn-icon" title="Mute / Unmute (M)">
+                  <span id="muteIcon">🔊</span>
+                </button>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100" />
+              </div>
+
+              <button id="fullscreenBtn" class="btn-icon" title="Fullscreen (F)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Secondary Toolbar: Bottom Sizing Controls & Bookmarks -->
+          <div class="controls-secondary-bar">
+            
+            <!-- Video Sizing Controls in Bottom Widget -->
+            <div class="sub-group video-size-group">
+              <span class="sub-group-label">Size:</span>
+              <button id="sizeCompactBtn" class="tag-btn" title="Compact Size (720px)">Compact</button>
+              <button id="sizeStandardBtn" class="tag-btn active" title="Standard Size (1080px)">Standard</button>
+              <button id="sizeCinemaBtn" class="tag-btn" title="Cinema Full Width">Cinema</button>
+              <button id="aspectToggleBtn" class="tag-btn" title="Toggle 16:9 / 21:9 Ultrawide">16:9 / 21:9</button>
+              <button id="zoomFillBtn" class="tag-btn" title="Toggle Zoom Crop / Fit Letterbox">Fit / Fill</button>
+            </div>
+
+            <!-- Bookmark Action -->
+            <div class="sub-group">
+              <button id="addBookmarkBtn" class="tag-btn" style="color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.4);">
+                ⭐ Mark Timestamp
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Interactive Drag-to-Resize Grip Handle (Bottom Right) -->
+        <div id="playerResizeHandle" class="player-resize-handle" title="Drag to Resize Video (Double-click to reset)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22 22H20V20H22V22ZM22 16H20V18H22V16ZM16 22H18V20H16V22ZM22 12H20V14H22V12ZM12 22H14V20H12V22ZM16 16H18V18H16V16Z"/>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Active Video Details & YouTube Recommendations Feed -->
+    <div class="dashboard-grid">
+      
+      <!-- Left Column: Current Video Details & Categorized Recommendations -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 id="currentVideoTitle" class="card-title">Costa Rica in 4K 60fps HDR (Ultra HD)</h2>
+            <p id="currentVideoDesc" style="font-size: 0.825rem; color: var(--text-dim); margin-top: 0.25rem;">
+              Breathtaking 60fps HDR nature footage capturing Costa Rican rainforests and wildlife.
+            </p>
+          </div>
+        </div>
+
+        <!-- YouTube Recommendations Feed -->
+        <div class="recommendations-section">
+          <div class="recommendations-header">
+            <h3 class="section-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#ef4444"><path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/></svg>
+              <span>Recommended Videos</span>
+            </h3>
+
+            <!-- Topic / Category Filter Chips -->
+            <div class="category-chips-bar" id="categoryChipsBar">
+              <button class="topic-chip active" data-category="All">All</button>
+              <button class="topic-chip" data-category="Trending">Trending</button>
+              <button class="topic-chip" data-category="Music">Music</button>
+              <button class="topic-chip" data-category="Gaming">Gaming</button>
+              <button class="topic-chip" data-category="Tech & AI">Tech & AI</button>
+              <button class="topic-chip" data-category="Nature & 4K">Nature 4K</button>
+              <button class="topic-chip" data-category="Sports & Motion">Sports</button>
+            </div>
+          </div>
+
+          <!-- Recommendations Grid -->
+          <div id="recommendationsGrid" class="sample-videos-grid">
+            <!-- Populated dynamically by recommendations.js & app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Saved Timestamp Markers & Bookmarks -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <span>📌 Saved Markers</span>
+          </h3>
+          <button id="copyCurrentTimeBtn" class="btn-ghost" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: var(--radius-full);" title="Copy YouTube link with current timestamp">
+            <span id="copyCurrentTimeIcon">🔗</span>
+            <span>Copy Time URL</span>
+          </button>
+        </div>
+
+        <div id="bookmarksList" class="bookmarks-list">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Help & Gesture Guide Modal -->
+  <div id="helpModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span>🎮 Gesture Guide & Controls</span>
+        <button id="closeHelpBtn" class="btn-icon" style="font-size: 1.2rem;">✕</button>
+      </div>
+
+      <!-- Gesture Diagrams -->
+      <div class="gesture-diagram-container">
+        <div class="diagram-row">
+          <span class="diagram-badge rose">Left Half (Hold)</span>
+          <span><strong>⏪ Reverse Rewind:</strong> Press & hold on the left half to rewind at -2.0x (drag ↑ UP for up to -8.0x, drag ↓ DOWN to slow down).</span>
+        </div>
+        <div class="diagram-row">
+          <span class="diagram-badge green">Right Half (Hold)</span>
+          <span><strong>⏩ Forward Boost:</strong> Press & hold on the right half to fast-forward at +2.0x (drag ↑ UP for up to +8.0x, drag ↓ DOWN to slow down).</span>
+        </div>
+        <div class="diagram-row">
+          <span class="diagram-badge blue">Release</span>
+          <span><strong>🎯 Resume Normal 1.0x:</strong> Releasing touch/mouse resumes standard 1.0x forward playback from current/rewound position.</span>
+        </div>
+        <div class="diagram-row">
+          <span class="diagram-badge purple">Resize Controls</span>
+          <span><strong>📐 Bottom Widget / Grip:</strong> Use the sizing buttons in the bottom toolbar or drag the grip handle (↘) to resize freely.</span>
+        </div>
+        <div class="diagram-row">
+          <span class="diagram-badge blue">Tap Shortcuts</span>
+          <span>Left tap = <strong>-10s</strong>, Right tap = <strong>+10s</strong>, Center tap = <strong>Play/Pause</strong>.</span>
+        </div>
+      </div>
+
+      <!-- Keyboard Shortcuts Cheat Sheet -->
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">
+          ⌨️ Keyboard Shortcuts:
+        </div>
+        <div class="shortcuts-grid">
+          <div class="shortcut-item"><span>Play / Pause</span><span class="kbd">Space</span></div>
+          <div class="shortcut-item"><span>Frame Back (Prev)</span><span class="kbd">J</span> / <span class="kbd">,</span></div>
+          <div class="shortcut-item"><span>Frame Forward (Next)</span><span class="kbd">K</span> / <span class="kbd">.</span></div>
+          <div class="shortcut-item"><span>Jump -5s / +5s</span><span class="kbd">←</span> / <span class="kbd">→</span></div>
+          <div class="shortcut-item"><span>Speed ±0.25x</span><span class="kbd">[</span> / <span class="kbd">]</span></div>
+          <div class="shortcut-item"><span>Reverse Rewind Live</span><span class="kbd">R</span></div>
+          <div class="shortcut-item"><span>Mute / Fullscreen</span><span class="kbd">M</span> / <span class="kbd">F</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="recommendations.js"></script>
+  <script src="player.js"></script>
+  <script src="gesture-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
