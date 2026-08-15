@@ -134,8 +134,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const res = player.loadVideo(query);
     if (res.success) {
       updateActiveCard(res.videoId);
-      gestureEngine.showMomentaryFeedback('Loaded Video', 'info');
+      if (urlInput) urlInput.value = `https://youtu.be/${res.videoId}`;
+      
+      const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
+      const curr = dataset ? dataset.find(v => v.id === res.videoId) : null;
+      const title = curr ? curr.title : `Video: ${res.videoId}`;
+      
+      gestureEngine.showMomentaryFeedback(`▶ Now Playing: ${title}`, 'info');
       updateVideoMetadata();
+      renderBookmarks();
+
+      // Scroll smoothly up to the player if user was browsing recommendations below
+      if (window.scrollY > 300) {
+        playerTheaterWrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     } else {
       gestureEngine.showMomentaryFeedback('Invalid URL / Video ID', 'info');
     }
@@ -282,9 +294,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // YouTube-style Cursor Auto-Hide on Idle Playback
+  let cursorIdleTimer = null;
+  if (videoViewport) {
+    videoViewport.addEventListener('mousemove', () => {
+      videoViewport.classList.remove('idle-hide-cursor');
+      clearTimeout(cursorIdleTimer);
+      if (player.isPlaying()) {
+        cursorIdleTimer = setTimeout(() => {
+          videoViewport.classList.add('idle-hide-cursor');
+        }, 2500);
+      }
+    });
+
+    videoViewport.addEventListener('mouseleave', () => {
+      clearTimeout(cursorIdleTimer);
+      videoViewport.classList.remove('idle-hide-cursor');
+    });
+  }
+
   // 7. Play / Pause / Reverse Controls
-  playBtn.addEventListener('click', () => {
+  playBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     player.togglePlay();
+    setTimeout(() => {
+      const isPlaying = player.isPlaying();
+      gestureEngine.showMomentaryFeedback(isPlaying ? '▶ Playing' : '⏸ Paused', 'info');
+    }, 50);
   });
 
   rewindLiveBtn.addEventListener('click', () => {

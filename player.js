@@ -82,7 +82,13 @@ class PlayerController {
             this.isReady = true;
             this.state.duration = this.player.getDuration() || 0;
             this.state.volume = this.player.getVolume() || 100;
-            this.state.isMuted = this.player.isMuted();
+            this.state.isMuted = this.player.isMuted ? this.player.isMuted() : false;
+            
+            if (this.pendingAutoplay) {
+              this.pendingAutoplay = false;
+              try { this.player.playVideo(); } catch (e) {}
+            }
+
             this.startPolling();
             if (this.onReadyCallback) this.onReadyCallback();
             this.notifyState();
@@ -106,10 +112,15 @@ class PlayerController {
   }
 
   handleStateChange(playerState) {
-    if (playerState === YT.PlayerState.PLAYING) {
+    // YT.PlayerState: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (video cued)
+    if (playerState === 1) { // PLAYING
       this.state.isPlaying = true;
       this.state.duration = this.player.getDuration() || this.state.duration;
-    } else if (playerState === YT.PlayerState.PAUSED || playerState === YT.PlayerState.ENDED) {
+    } else if (playerState === 2 || playerState === 0) { // PAUSED / ENDED
+      if (!this.state.isReversePlaying) {
+        this.state.isPlaying = false;
+      }
+    } else if (playerState === 5 || playerState === -1) { // CUED / UNSTARTED
       if (!this.state.isReversePlaying) {
         this.state.isPlaying = false;
       }
@@ -329,29 +340,49 @@ class PlayerController {
   // --- Core Playback Controls ---
 
   play() {
-    if (!this.isReady || !this.player) return;
     this.stopReverse();
     this.stopForwardBoost();
-    try {
-      this.player.playVideo();
-    } catch (e) {}
+    if (this.isReady && this.player && this.player.playVideo) {
+      try {
+        this.player.playVideo();
+      } catch (e) {
+        console.warn('playVideo error:', e);
+      }
+    } else {
+      this.pendingAutoplay = true;
+    }
     this.state.isPlaying = true;
     this.notifyState();
   }
 
   pause() {
-    if (!this.isReady || !this.player) return;
     this.stopReverse();
     this.stopForwardBoost();
-    try {
-      this.player.pauseVideo();
-    } catch (e) {}
+    if (this.isReady && this.player && this.player.pauseVideo) {
+      try {
+        this.player.pauseVideo();
+      } catch (e) {
+        console.warn('pauseVideo error:', e);
+      }
+    }
     this.state.isPlaying = false;
     this.notifyState();
   }
 
   togglePlay() {
-    if (this.isPlaying()) {
+    let currentlyPlaying = this.state.isPlaying;
+    try {
+      if (this.isReady && this.player && this.player.getPlayerState) {
+        const s = this.player.getPlayerState();
+        if (s === 1 || s === 3) {
+          currentlyPlaying = true;
+        } else if (s === 2 || s === 0 || s === 5 || s === -1) {
+          currentlyPlaying = false;
+        }
+      }
+    } catch (e) {}
+
+    if (currentlyPlaying) {
       this.pause();
     } else {
       this.play();
@@ -460,18 +491,26 @@ class PlayerController {
     }
 
     this.videoId = videoId;
-    this.clearLoop();
     this.stopReverse();
     this.stopForwardBoost();
 
     if (this.isReady && this.player && this.player.loadVideoById) {
       try {
-        this.player.loadVideoById(videoId);
+        this.player.loadVideoById({
+          videoId: videoId,
+          startSeconds: 0
+        });
         this.state.isPlaying = true;
         this.state.currentTime = 0;
         this.virtualTime = 0;
         this.notifyState();
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Error loading video by ID:', e);
+        try {
+          this.player.cueVideoById(videoId);
+          this.player.playVideo();
+        } catch (err) {}
+      }
     }
 
     return { success: true, videoId };

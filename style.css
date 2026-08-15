@@ -484,7 +484,7 @@ body {
   opacity: 1;
 }
 
-/* Gesture Capture Surface Overlay */
+/* Gesture Capture Surface Overlay (YouTube Cursor Standard) */
 .gesture-surface-overlay {
   position: absolute;
   top: 0;
@@ -492,10 +492,21 @@ body {
   width: 100%;
   height: 100%;
   z-index: 20;
-  cursor: crosshair;
+  cursor: default;
   touch-action: none;
   -webkit-touch-callout: none;
   user-select: none;
+}
+
+.gesture-surface-overlay:active,
+.gesture-surface-overlay.active {
+  cursor: grabbing;
+}
+
+/* YouTube Idle Cursor Auto-Hide */
+.player-video-viewport.idle-hide-cursor,
+.player-video-viewport.idle-hide-cursor .gesture-surface-overlay {
+  cursor: none !important;
 }
 
 /* Touch Point Ring */
@@ -763,6 +774,10 @@ body {
   touch-action: none;
 }
 
+.timeline-container.dragging {
+  cursor: grabbing;
+}
+
 .timeline-track-bg {
   position: relative;
   width: 100%;
@@ -951,6 +966,10 @@ body {
   transition: all var(--transition-fast);
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
   flex-shrink: 0;
+}
+
+.ctrl-btn-play * {
+  pointer-events: none;
 }
 
 .ctrl-btn-play:hover {
