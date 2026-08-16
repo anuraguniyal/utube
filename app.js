@@ -123,10 +123,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="video-card-details">
             <h4 class="video-card-title">${video.title}</h4>
             <div class="video-card-channel">${video.channel}</div>
-            <div class="video-card-meta">
-              <span>${video.views}</span>
-              <span>•</span>
-              <span>${video.published}</span>
+            <div class="video-card-meta" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+              <span class="video-card-views">${video.views}</span>
+              <span style="opacity: 0.5;">•</span>
+              <span class="video-card-published" style="color: #fbbf24; font-weight: 600; background: rgba(251, 191, 36, 0.12); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(251, 191, 36, 0.25); font-size: 0.72rem; white-space: nowrap;">
+                🕒 ${video.published || 'Recently released'}
+              </span>
             </div>
           </div>
         </div>
@@ -806,13 +808,15 @@ document.addEventListener('DOMContentLoaded', () => {
             <img class="search-card-thumb" src="${item.thumbnail || `https://img.youtube.com/vi/${item.id}/hqdefault.jpg`}" alt="${item.title}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='https://img.youtube.com/vi/${item.id}/hqdefault.jpg'" />
             <span class="search-card-duration" style="position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,0.85); color: #fff; font-family: monospace; font-size: 0.6rem; font-weight: 700; padding: 1px 3px; border-radius: 3px; line-height: 1;">${item.duration || '▶'}</span>
           </div>
-          <div class="search-card-content" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; overflow: hidden;">
+          <div class="search-card-content" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; overflow: hidden;">
             <div class="search-card-title" style="font-size: 0.775rem; font-weight: 700; color: #f1f5f9; line-height: 1.3; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">${item.title}</div>
-            <div class="search-card-meta" style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              <span class="search-card-channel" style="color: #93c5fd; font-weight: 600;">${item.channel || 'YouTube'}</span>
-              <span>•</span>
-              <span>${item.views || 'Popular'}</span>
-              ${item.published ? `<span>•</span><span class="search-card-published" style="color: #e2e8f0; font-weight: 500;">${item.published}</span>` : ''}
+            <div class="search-card-channel" style="font-size: 0.72rem; color: #93c5fd; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.channel || 'YouTube'}</div>
+            <div class="search-card-meta" style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+              <span class="search-card-views">${item.views || 'Popular'}</span>
+              <span style="opacity: 0.5;">•</span>
+              <span class="search-card-published" style="color: #fbbf24; font-weight: 600; background: rgba(251, 191, 36, 0.12); padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(251, 191, 36, 0.25); white-space: nowrap; font-size: 0.68rem;">
+                🕒 ${item.published || 'Recently released'}
+              </span>
             </div>
           </div>
           <div class="search-card-actions" style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto;">

@@ -2301,15 +2301,28 @@ input:checked + .toggle-slider:before {
   color: var(--text-muted) !important;
   display: flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
 }
 
 .search-card-channel {
   color: #93c5fd !important;
   font-weight: 600 !important;
+  font-size: 0.72rem !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.search-card-published {
+  color: #fbbf24 !important;
+  font-weight: 600 !important;
+  background: rgba(251, 191, 36, 0.12) !important;
+  padding: 1px 5px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(251, 191, 36, 0.25) !important;
+  white-space: nowrap !important;
+  font-size: 0.68rem !important;
 }
 
 .search-card-actions {
