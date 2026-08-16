@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=3.7" />
+  <link rel="stylesheet" href="style.css?v=3.8" />
 
   <script>
     function openHelpModal() {
@@ -84,7 +84,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.7</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.8</div>
     </div>
   </header>
 
@@ -397,51 +397,66 @@
   </main>
 
   <!-- Help & Gesture Guide Modal -->
-  <div id="helpModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 999999; align-items: center; justify-content: center; backdrop-filter: blur(8px);" onclick="if(event.target===this)closeHelpModal();">
-    <div class="modal-card" style="position: relative; z-index: 1000000; background: #151923; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; width: 100%; max-width: 620px; padding: 1.75rem; box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9);">
+  <div id="helpModal" class="modal-backdrop" style="display: none;" onclick="if(event.target===this)closeHelpModal();">
+    <div class="modal-card">
       <div class="modal-title">
-        <span>🎮 Gesture Guide & Controls</span>
-        <button id="closeHelpBtn" class="btn-icon" onclick="closeHelpModal();" style="font-size: 1.2rem;">✕</button>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.25rem;">🎮</span>
+          <span>Gesture Guide & Keyboard Controls</span>
+        </div>
+        <button id="closeHelpBtn" class="btn-icon modal-close-btn" onclick="closeHelpModal();" title="Close (Esc)">✕</button>
       </div>
 
       <!-- Gesture Diagrams -->
       <div class="gesture-diagram-container">
         <div class="diagram-row">
           <span class="diagram-badge rose">Left Half (Hold)</span>
-          <span><strong>⏪ Reverse Rewind:</strong> Press & hold on the left half to rewind at -2.0x (drag ↑ UP for up to -8.0x, drag ↓ DOWN to slow down).</span>
+          <div class="diagram-desc">
+            <strong>⏪ Reverse Rewind:</strong> Press & hold anywhere on the left half to rewind at -2.0x (drag ↑ up for -8.0x, drag ↓ down to slow).
+          </div>
         </div>
         <div class="diagram-row">
           <span class="diagram-badge green">Right Half (Hold)</span>
-          <span><strong>⏩ Forward Boost:</strong> Press & hold on the right half to fast-forward at +2.0x (drag ↑ UP for up to +8.0x, drag ↓ DOWN to slow down).</span>
+          <div class="diagram-desc">
+            <strong>⏩ Forward Boost:</strong> Press & hold anywhere on the right half to fast-forward at +2.0x (drag ↑ up for +8.0x, drag ↓ down to slow).
+          </div>
         </div>
         <div class="diagram-row">
           <span class="diagram-badge blue">Release</span>
-          <span><strong>🎯 Resume Normal 1.0x:</strong> Releasing touch/mouse resumes standard 1.0x forward playback from current/rewound position.</span>
+          <div class="diagram-desc">
+            <strong>🎯 Resume Normal 1.0x:</strong> Releasing touch or mouse immediately resumes standard 1.0x playback from that exact frame.
+          </div>
         </div>
         <div class="diagram-row">
-          <span class="diagram-badge purple">Resize Controls</span>
-          <span><strong>📐 Bottom Widget / Grip:</strong> Use the sizing buttons in the bottom toolbar or drag the grip handle (↘) to resize freely.</span>
+          <span class="diagram-badge purple">Resize Handle</span>
+          <div class="diagram-desc">
+            <strong>📐 Drag Grip (↘):</strong> Drag the bottom-right grip to resize freely, or click <strong>Compact / Standard / Cinema</strong> presets.
+          </div>
         </div>
         <div class="diagram-row">
-          <span class="diagram-badge blue">Tap Shortcuts</span>
-          <span>Left tap = <strong>-10s</strong>, Right tap = <strong>+10s</strong>, Center tap = <strong>Play/Pause</strong>.</span>
+          <span class="diagram-badge amber">Quick Taps</span>
+          <div class="diagram-desc">
+            <strong>⚡ Tap Jumps:</strong> Left tap = <strong>-10s</strong>, Right tap = <strong>+10s</strong>, Center tap = <strong>Play/Pause</strong>.
+          </div>
         </div>
       </div>
 
       <!-- Keyboard Shortcuts Cheat Sheet -->
-      <div style="border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
-        <div style="font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">
-          ⌨️ Keyboard Shortcuts:
+      <div class="shortcuts-section">
+        <div class="shortcuts-section-title">
+          <span>⌨️ Keyboard Shortcuts Cheat Sheet</span>
         </div>
         <div class="shortcuts-grid">
           <div class="shortcut-item"><span>Play / Pause</span><span class="kbd">Space</span></div>
           <div class="shortcut-item"><span>Captions (CC)</span><span class="kbd">C</span></div>
-          <div class="shortcut-item"><span>Frame Back (Prev)</span><span class="kbd">J</span> / <span class="kbd">,</span></div>
-          <div class="shortcut-item"><span>Frame Forward (Next)</span><span class="kbd">K</span> / <span class="kbd">.</span></div>
-          <div class="shortcut-item"><span>Jump -5s / +5s</span><span class="kbd">←</span> / <span class="kbd">→</span></div>
-          <div class="shortcut-item"><span>Speed ±0.25x</span><span class="kbd">[</span> / <span class="kbd">]</span></div>
+          <div class="shortcut-item"><span>Frame Back (Prev)</span><span class="kbd">J</span> <span style="opacity: 0.4;">/</span> <span class="kbd">,</span></div>
+          <div class="shortcut-item"><span>Frame Forward (Next)</span><span class="kbd">K</span> <span style="opacity: 0.4;">/</span> <span class="kbd">.</span></div>
+          <div class="shortcut-item"><span>Jump -5s / +5s</span><span class="kbd">←</span> <span style="opacity: 0.4;">/</span> <span class="kbd">→</span></div>
+          <div class="shortcut-item"><span>Jump -10s / +10s</span><span class="kbd">H</span> <span style="opacity: 0.4;">/</span> <span class="kbd">L</span></div>
+          <div class="shortcut-item"><span>Speed ±0.25x</span><span class="kbd">[</span> <span style="opacity: 0.4;">/</span> <span class="kbd">]</span></div>
           <div class="shortcut-item"><span>Reverse Rewind Live</span><span class="kbd">R</span></div>
-          <div class="shortcut-item"><span>Mute / Fullscreen</span><span class="kbd">M</span> / <span class="kbd">F</span></div>
+          <div class="shortcut-item"><span>Mute / Unmute</span><span class="kbd">M</span></div>
+          <div class="shortcut-item"><span>Toggle Fullscreen</span><span class="kbd">F</span></div>
         </div>
       </div>
 
@@ -449,9 +464,9 @@
   </div>
 
   <!-- Scripts -->
-  <script src="recommendations.js?v=3.7"></script>
-  <script src="player.js?v=3.7"></script>
-  <script src="gesture-engine.js?v=3.7"></script>
-  <script src="app.js?v=3.7"></script>
+  <script src="recommendations.js?v=3.8"></script>
+  <script src="player.js?v=3.8"></script>
+  <script src="gesture-engine.js?v=3.8"></script>
+  <script src="app.js?v=3.8"></script>
 </body>
 </html>
