@@ -745,6 +745,13 @@ class PlayerController {
     this.notifyState();
   }
 
+  removeBookmarksForVideo(videoId) {
+    if (!Array.isArray(this.state.bookmarks)) this.state.bookmarks = [];
+    this.state.bookmarks = this.state.bookmarks.filter(b => b && b.videoId !== videoId);
+    this.saveBookmarksToStorage();
+    this.notifyState();
+  }
+
   saveBookmarksToStorage() {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {

@@ -1030,28 +1030,27 @@ document.addEventListener('DOMContentLoaded', () => {
       if (group.items.length === 0) return;
 
       const isCurrent = group.isCurrent;
-      const groupHeader = isCurrent
-        ? `
-          <div class="bm-group-header" style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);width:100%;box-sizing:border-box;">
-            <div class="bm-group-title" title="${group.title}" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:0.775rem;font-weight:700;color:#fff;min-width:0;flex:1;overflow:hidden;">
-              <span>▶</span>
-              <span class="bm-group-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#93c5fd;flex:1;min-width:0;">${group.title ? `${group.title} (Current Video)` : 'Current Video'}</span>
-              <span class="bm-count-pill" style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;background:rgba(255,255,255,0.1);color:var(--text-dim);padding:1px 6px;border-radius:9999px;flex-shrink:0;">${group.items.length}</span>
-            </div>
+      const groupHeader = `
+        <div class="bm-group-header" style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);width:100%;box-sizing:border-box;gap:6px;">
+          <div class="bm-group-title" title="${group.title}" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:0.775rem;font-weight:700;color:#fff;min-width:0;flex:1;overflow:hidden;">
+            <span>${isCurrent ? '▶' : '📺'}</span>
+            <span class="bm-group-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${isCurrent ? '#93c5fd' : '#e2e8f0'};flex:1;min-width:0;">
+              ${isCurrent ? (group.title ? `${group.title} (Current Video)` : 'Current Video') : group.title}
+            </span>
+            <span class="bm-count-pill" style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;background:rgba(255,255,255,0.1);color:var(--text-dim);padding:1px 6px;border-radius:9999px;flex-shrink:0;">${group.items.length}</span>
           </div>
-        `
-        : `
-          <div class="bm-group-header" style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);width:100%;box-sizing:border-box;">
-            <div class="bm-group-title" title="${group.title}" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:0.775rem;font-weight:700;color:#fff;min-width:0;flex:1;overflow:hidden;">
-              <span>📺</span>
-              <span class="bm-group-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e2e8f0;flex:1;min-width:0;">${group.title}</span>
-              <span class="bm-count-pill" style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;background:rgba(255,255,255,0.1);color:var(--text-dim);padding:1px 6px;border-radius:9999px;flex-shrink:0;">${group.items.length}</span>
-            </div>
-            <button class="bm-play-video-btn" data-vid="${group.videoId}" style="display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 8px;font-size:0.68rem;font-weight:700;border-radius:9999px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;cursor:pointer;flex-shrink:0;margin-left:6px;white-space:nowrap;" title="Load video: ${group.title}">
-              ▶ Play
+          <div class="bm-group-actions" style="display:inline-flex;align-items:center;gap:5px;flex-shrink:0;">
+            ${!isCurrent ? `
+              <button class="bm-play-video-btn" data-vid="${group.videoId}" style="display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 8px;font-size:0.68rem;font-weight:700;border-radius:9999px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;cursor:pointer;flex-shrink:0;white-space:nowrap;" title="Load video: ${group.title}">
+                ▶ Play
+              </button>
+            ` : ''}
+            <button class="bm-delete-group-btn" data-vid="${group.videoId}" data-title="${group.title}" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;min-width:22px;border-radius:4px;font-size:0.75rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#f87171;cursor:pointer;line-height:1;padding:0;" title="Remove all bookmarks for this video">
+              ✕
             </button>
           </div>
-        `;
+        </div>
+      `;
 
       const rows = group.items.map(bm => {
         const url = bm.videoUrl || `https://youtu.be/${bm.videoId}?t=${Math.floor(bm.time)}`;
@@ -1146,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Delete Marker
+    // Delete Individual Marker
     bookmarksList.querySelectorAll('.delete-marker-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1154,6 +1153,24 @@ document.addEventListener('DOMContentLoaded', () => {
         player.removeBookmark(id);
         renderBookmarks();
         gestureEngine.showMomentaryFeedback('Marker removed', 'info');
+      });
+    });
+
+    // Delete Entire Video Group / Section of Bookmarks
+    bookmarksList.querySelectorAll('.bm-delete-group-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const vid = btn.getAttribute('data-vid');
+        const title = btn.getAttribute('data-title') || 'video';
+        if (typeof player.removeBookmarksForVideo === 'function') {
+          player.removeBookmarksForVideo(vid);
+        } else {
+          player.state.bookmarks = (player.state.bookmarks || []).filter(b => b && b.videoId !== vid);
+          player.saveBookmarksToStorage();
+          player.notifyState();
+        }
+        renderBookmarks();
+        gestureEngine.showMomentaryFeedback(`Removed all bookmarks for this video`, 'info');
       });
     });
 

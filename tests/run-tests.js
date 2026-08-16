@@ -274,6 +274,9 @@ async function runTests() {
     const markerCount = await cdp.evaluate('document.querySelectorAll("#bookmarksList .bookmark-row").length');
     assert(markerCount >= 1, 'Clicking Add Bookmark creates a new marker row in bookmarksList', `Found: ${markerCount}`);
 
+    const groupCloseBtn = await cdp.evaluate('!!document.querySelector(".bm-delete-group-btn")');
+    assert(groupCloseBtn, 'Group close button (bm-delete-group-btn) exists on video bookmark group header');
+
     // TEST 7: Search Functionality & Side-by-Side Panel to Right of Video Player
     console.log('\n--- Test Group 7: Universal Search & Player Side-Panel ---');
     const searchSidebar = await cdp.evaluate('!!document.getElementById("playerSearchSidebar")');
