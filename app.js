@@ -64,13 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const addBookmarkCardBtn = document.getElementById('addBookmarkCardBtn');
   const copyCurrentTimeBtn = document.getElementById('copyCurrentTimeBtn');
   const copyCurrentTimeIcon = document.getElementById('copyCurrentTimeIcon');
-  const filterBmAll = document.getElementById('filterBmAll');
-  const filterBmCurrent = document.getElementById('filterBmCurrent');
-  const bmCountAll = document.getElementById('bmCountAll');
-  const bmCountCurrent = document.getElementById('bmCountCurrent');
   const bmCountHeaderBadge = document.getElementById('bmCountHeaderBadge');
-
-  let activeBookmarkFilter = 'all'; // 'all' | 'current'
 
   // Dedicated Search Sidebar (Right of Video Player) Elements
   const playerSearchSidebar = document.getElementById('playerSearchSidebar');
@@ -883,21 +877,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 13. Bookmarks & Markers
-  if (filterBmAll && filterBmCurrent) {
-    filterBmAll.addEventListener('click', () => {
-      activeBookmarkFilter = 'all';
-      filterBmAll.classList.add('active');
-      filterBmCurrent.classList.remove('active');
-      renderBookmarks();
-    });
-
-    filterBmCurrent.addEventListener('click', () => {
-      activeBookmarkFilter = 'current';
-      filterBmCurrent.classList.add('active');
-      filterBmAll.classList.remove('active');
-      renderBookmarks();
-    });
-  }
 
   function resolveVideoTitleSync(videoId, fallbackTitle = '') {
     if (fallbackTitle && !fallbackTitle.startsWith('Video:') && !fallbackTitle.startsWith('YouTube Video (')) {
@@ -965,9 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const allBookmarks = player.state.bookmarks || [];
     const currentVideoBookmarks = allBookmarks.filter(b => b && b.videoId === player.videoId);
 
-    // Update Counts
-    if (bmCountAll) bmCountAll.textContent = allBookmarks.length;
-    if (bmCountCurrent) bmCountCurrent.textContent = currentVideoBookmarks.length;
+    // Update Header Count Badge
     if (bmCountHeaderBadge) bmCountHeaderBadge.textContent = allBookmarks.length;
 
     // Refresh Bookmark states on visible search result cards
@@ -989,13 +966,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    const displayList = activeBookmarkFilter === 'current' ? currentVideoBookmarks : allBookmarks;
-
-    if (displayList.length === 0) {
-      const emptyMsg = activeBookmarkFilter === 'current'
-        ? `No markers saved for this video yet. Click "⭐ Mark Time" to save one!`
-        : `No markers saved yet. Click "⭐ Mark Time" to bookmark timestamps from any video!`;
-      bookmarksList.innerHTML = `<div style="color: var(--text-dim); font-size: 0.8rem; text-align: center; padding: 1rem;">${emptyMsg}</div>`;
+    if (allBookmarks.length === 0) {
+      bookmarksList.innerHTML = `<div style="color: var(--text-dim); font-size: 0.8rem; text-align: center; padding: 1rem;">No markers saved yet. Click "⭐ Mark Time" to bookmark timestamps!</div>`;
       renderTimelineMarkers();
       return;
     }
@@ -1013,7 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    displayList.forEach(bm => {
+    allBookmarks.forEach(bm => {
       if (!groupsMap.has(bm.videoId)) {
         groupsMap.set(bm.videoId, {
           videoId: bm.videoId,
