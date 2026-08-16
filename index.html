@@ -59,7 +59,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.0</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.1</div>
     </div>
   </header>
 
@@ -304,29 +304,57 @@
         <div class="theater-chat-sidebar" id="theaterChatSidebar">
           <div class="chat-sidebar-header">
             <div class="chat-sidebar-title">
-              <span>💬 Stream Chat</span>
+              <span>💬 Stream Chat Hub</span>
             </div>
             <div class="chat-sidebar-actions">
-              <button id="popoutChatBtn" class="chat-header-btn" title="Open chat in popup window">⤢ Pop Out</button>
-              <button id="refreshChatBtn" class="chat-header-btn" title="Reload stream chat">⟳</button>
+              <button id="popoutChatBtn" class="chat-header-btn" title="Open YouTube official live chat window">⤢ Pop Out</button>
               <button id="closeChatSidebarBtn" class="chat-header-btn" title="Hide chat sidebar">✕</button>
             </div>
           </div>
           
           <div class="chat-sidebar-body">
-            <iframe id="liveChatIframe" class="live-chat-iframe" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-            <div id="chatFallbackMsg" class="chat-fallback-overlay" style="display: none;">
-              <div class="chat-fallback-card">
-                <div style="font-size: 1.5rem; margin-bottom: 0.4rem;">💬</div>
-                <div style="font-weight: 700; font-size: 0.85rem; color: #fff; margin-bottom: 0.3rem;">Live Stream Chat</div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.4;">
-                  If this video is not a live stream or if YouTube restricts embedding on this domain, open the standalone stream chat window:
-                </div>
-                <button id="openPopoutChatDirectBtn" class="btn-primary" style="font-size: 0.75rem; padding: 0.35rem 0.85rem; border-radius: var(--radius-full);">
-                  <span>⤢ Open Chat Window</span>
-                </button>
+            <!-- Top Popout Action Banner -->
+            <div class="chat-popout-card">
+              <div class="chat-popout-header">
+                <span class="chat-status-dot"></span>
+                <span style="font-size: 0.775rem; font-weight: 700; color: #fff;">YouTube Official Live Chat</span>
+              </div>
+              <p style="font-size: 0.725rem; color: var(--text-dim); margin: 0.25rem 0 0.5rem 0; line-height: 1.35;">
+                Open YouTube's official stream chat & replay popup beside your player:
+              </p>
+              <button id="openPopoutChatDirectBtn" class="btn-primary chat-launch-btn">
+                <span>⤢ Launch Dedicated Chat Window</span>
+              </button>
+            </div>
+
+            <!-- Quick Live Streams Preset Row -->
+            <div class="chat-presets-section">
+              <span class="chat-presets-label">🔴 24/7 Active Live Streams:</span>
+              <div class="chat-presets-chips">
+                <button class="chat-preset-chip" data-vid="jfKfPfyJRdk">🎧 Lofi Girl</button>
+                <button class="chat-preset-chip" data-vid="21X5lGlDOfg">🚀 NASA Space</button>
+                <button class="chat-preset-chip" data-vid="5yx6BWlEVcY">🎵 ChillHop</button>
               </div>
             </div>
+
+            <!-- Timestamped Stream Notes & Chat Feed -->
+            <div class="stream-notes-section">
+              <div class="stream-notes-header">
+                <span>📝 Stream Notes & Reactions</span>
+                <span id="notesCount" class="notes-count-badge">0</span>
+              </div>
+              <div id="streamNotesFeed" class="stream-notes-feed">
+                <!-- Populated dynamically -->
+              </div>
+              
+              <!-- Input Bar -->
+              <form id="streamNoteForm" class="stream-note-input-bar">
+                <span id="currentNoteTimestamp" class="note-time-badge">0:00</span>
+                <input type="text" id="streamNoteInput" class="note-text-input" placeholder="Add note at current time..." autocomplete="off" />
+                <button type="submit" class="note-send-btn" title="Send (Enter)">➤</button>
+              </form>
+            </div>
+
           </div>
         </div>
 
