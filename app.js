@@ -618,7 +618,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentVideoBookmarks = player.state.bookmarks.filter(b => b.videoId === player.videoId);
 
     if (currentVideoBookmarks.length === 0) {
-      bookmarksList.innerHTML = `<div style="color: var(--text-dim); font-size: 0.8rem; text-align: center; padding: 1rem;">No markers saved for this video yet. Click "⭐ Mark Timestamp" to save one!</div>`;
+      bookmarksList.innerHTML = `<div style="color: var(--text-dim); font-size: 0.8rem; text-align: center; padding: 1rem;">No markers saved for this video yet. Click "⭐ Mark Time" to save one!</div>`;
+      renderTimelineMarkers();
       return;
     }
 
