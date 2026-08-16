@@ -939,19 +939,27 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 15. Help Modal
-  openHelpBtn.addEventListener('click', () => {
-    helpModal.classList.add('active');
-  });
+  if (openHelpBtn && helpModal) {
+    openHelpBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      helpModal.classList.add('active');
+    });
+  }
 
-  closeHelpBtn.addEventListener('click', () => {
-    helpModal.classList.remove('active');
-  });
-
-  helpModal.addEventListener('click', (e) => {
-    if (e.target === helpModal) {
+  if (closeHelpBtn && helpModal) {
+    closeHelpBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       helpModal.classList.remove('active');
-    }
-  });
+    });
+  }
+
+  if (helpModal) {
+    helpModal.addEventListener('click', (e) => {
+      if (e.target === helpModal) {
+        helpModal.classList.remove('active');
+      }
+    });
+  }
 
   // 16. Global Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {

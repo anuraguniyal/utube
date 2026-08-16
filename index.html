@@ -35,7 +35,7 @@
       </a>
 
       <!-- Guide Button on Left -->
-      <button id="openHelpBtn" class="top-left-guide-btn" title="Gesture Guide & Shortcuts (?)">
+      <button id="openHelpBtn" class="top-left-guide-btn" onclick="document.getElementById('helpModal').classList.add('active');" title="Gesture Guide & Shortcuts (?)">
         <span>💡 Guide</span>
         <span class="kbd">?</span>
       </button>
@@ -59,7 +59,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.3</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.4</div>
     </div>
   </header>
 
@@ -376,7 +376,7 @@
     <div class="modal-card">
       <div class="modal-title">
         <span>🎮 Gesture Guide & Controls</span>
-        <button id="closeHelpBtn" class="btn-icon" style="font-size: 1.2rem;">✕</button>
+        <button id="closeHelpBtn" class="btn-icon" onclick="document.getElementById('helpModal').classList.remove('active');" style="font-size: 1.2rem;">✕</button>
       </div>
 
       <!-- Gesture Diagrams -->
