@@ -29,6 +29,7 @@ class PlayerController {
     this.virtualTime = this.initialStartSeconds;
     this.lastNativeRate = 1.0;
     this.wasPlayingBeforeReverse = true;
+    this.pendingSeekTime = null;
     
     this.state = {
       isPlaying: false,
@@ -135,9 +136,20 @@ class PlayerController {
 
   handleStateChange(playerState) {
     // YT.PlayerState: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (video cued)
-    if (playerState === 1) { // PLAYING
+    if (playerState === 1 || playerState === 3) { // PLAYING or BUFFERING
       this.state.isPlaying = true;
       this.state.duration = this.player.getDuration() || this.state.duration;
+
+      // When switching videos, enforce the pending timestamp seek as soon as the player buffers/plays
+      if (typeof this.pendingSeekTime === 'number' && this.pendingSeekTime > 0) {
+        const target = this.pendingSeekTime;
+        this.pendingSeekTime = null;
+        try {
+          this.player.seekTo(target, true);
+          this.state.currentTime = target;
+          this.virtualTime = target;
+        } catch (e) {}
+      }
     } else if (playerState === 2 || playerState === 0) { // PAUSED / ENDED
       if (!this.state.isReversePlaying) {
         this.state.isPlaying = false;
@@ -605,13 +617,18 @@ class PlayerController {
     this.stopForwardBoost();
 
     const startSec = Math.max(0, parseFloat(startSeconds) || 0);
+    this.pendingSeekTime = startSec > 0 ? startSec : null;
 
-    if (this.isReady && this.player && this.player.loadVideoById) {
+    if (this.isReady && this.player && typeof this.player.loadVideoById === 'function') {
       try {
-        this.player.loadVideoById({
-          videoId: videoId,
-          startSeconds: startSec
-        });
+        try {
+          this.player.loadVideoById(videoId, startSec);
+        } catch (err) {
+          this.player.loadVideoById({
+            videoId: videoId,
+            startSeconds: startSec
+          });
+        }
         this.state.isPlaying = true;
         this.state.currentTime = startSec;
         this.virtualTime = startSec;
