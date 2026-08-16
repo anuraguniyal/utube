@@ -649,7 +649,7 @@ class PlayerController {
 
   // --- Bookmarks ---
 
-  addBookmark(label = '') {
+  addBookmark(label = '', customTitle = '') {
     let time = 0;
     try {
       if (this.player && typeof this.player.getCurrentTime === 'function') {
@@ -662,10 +662,16 @@ class PlayerController {
     }
 
     const vId = this.videoId || 'LXb3EKWsInQ';
+    const title = customTitle || this.state.title || (typeof document !== 'undefined' && document.getElementById('currentVideoTitle')?.textContent) || `Video: ${vId}`;
+    const roundTime = Math.max(0, Math.round(time * 10) / 10);
+    const videoUrl = `https://youtu.be/${vId}?t=${Math.floor(roundTime)}`;
+
     const bookmark = {
       id: `${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       videoId: vId,
-      time: Math.max(0, Math.round(time * 10) / 10),
+      videoTitle: title,
+      videoUrl: videoUrl,
+      time: roundTime,
       label: label || `Marker @ ${this.formatTime(time)}`,
       createdAt: new Date().toISOString()
     };
@@ -674,7 +680,7 @@ class PlayerController {
       this.state.bookmarks = [];
     }
 
-    this.state.bookmarks.push(bookmark);
+    this.state.bookmarks.unshift(bookmark);
     this.saveBookmarksToStorage();
     this.notifyState();
     return bookmark;

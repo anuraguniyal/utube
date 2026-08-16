@@ -68,13 +68,13 @@ Touch or click-and-drag directly on the video viewport for continuous gesture na
   - **Language Selector**: Choose between English, Spanish, French, German, Japanese, Chinese, or Auto-Generated tracks.
   - **Font Size Customization**: Small, Normal, Large, and XL font sizing.
 
-### 7. 📌 Saved Timestamp Markers & Yellow Timeline Dots
-- **Yellow Dots on Timeline**: Saved bookmarks are displayed as bright yellow glowing dots positioned directly along the scrubber timeline.
-- **1-Click Jump**: Click any yellow dot on the timeline to instantly seek to that bookmark.
-- **Hover Timestamp Tooltip**: Hovering over a dot reveals a popup displaying the marker's title and exact timestamp.
-- **Persistent Storage**: Markers are saved to browser `localStorage` across page refreshes.
-- **Copy Timestamp Link (`🔗`)**: Dedicated button on each marker to copy shareable YouTube timestamp URLs (e.g. `https://youtu.be/LXb3EKWsInQ?t=125`) directly to clipboard.
-- **Copy Time URL Header Button**: 1-click button in the markers panel to copy a link at the player's current playhead.
+### 7. 📌 Multi-Video Saved Markers & Yellow Timeline Dots
+- **Cross-Video Bookmarks**: Save markers from any video with the video's real title, full YouTube timestamp URL (`https://youtu.be/{id}?t={time}`), and timestamp.
+- **1-Click Video Switch & Jump**: Clicking a bookmark from another video automatically loads that video and seeks directly to the saved timestamp.
+- **Filter Tabs**: Toggle between `All Videos` and `This Video` to quickly find your saved moments.
+- **Yellow Dots on Timeline**: Saved bookmarks for the active video are displayed as bright yellow glowing dots along the scrubber timeline.
+- **Copy Timestamp Link (`🔗`)**: Dedicated button on each marker to copy the full YouTube timestamp URL.
+- **Persistent Storage**: All multi-video bookmarks are saved to browser `localStorage`.
 
 ---
 

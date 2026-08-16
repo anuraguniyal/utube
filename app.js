@@ -582,10 +582,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const copyCurrentTimeBtn = document.getElementById('copyCurrentTimeBtn');
   const copyCurrentTimeIcon = document.getElementById('copyCurrentTimeIcon');
   const addBookmarkCardBtn = document.getElementById('addBookmarkCardBtn');
+  const filterBmAll = document.getElementById('filterBmAll');
+  const filterBmCurrent = document.getElementById('filterBmCurrent');
+  const bmCountAll = document.getElementById('bmCountAll');
+  const bmCountCurrent = document.getElementById('bmCountCurrent');
+
+  let activeBookmarkFilter = 'all'; // 'all' | 'current'
+
+  if (filterBmAll && filterBmCurrent) {
+    filterBmAll.addEventListener('click', () => {
+      activeBookmarkFilter = 'all';
+      filterBmAll.classList.add('active');
+      filterBmCurrent.classList.remove('active');
+      renderBookmarks();
+    });
+
+    filterBmCurrent.addEventListener('click', () => {
+      activeBookmarkFilter = 'current';
+      filterBmCurrent.classList.add('active');
+      filterBmAll.classList.remove('active');
+      renderBookmarks();
+    });
+  }
 
   function handleAddBookmark() {
     try {
-      const bm = player.addBookmark();
+      const currentTitle = document.getElementById('currentVideoTitle')?.textContent || player.state.title || `Video: ${player.videoId}`;
+      const bm = player.addBookmark('', currentTitle);
       renderBookmarks();
       gestureEngine.showMomentaryFeedback(`⭐ Marked @ ${player.formatTime(bm.time)}`, 'info');
     } catch (e) {
@@ -593,7 +616,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (addBookmarkBtn) addBookmarkBtn.addEventListener('click', handleAddBookmark);
   if (addBookmarkCardBtn) addBookmarkCardBtn.addEventListener('click', handleAddBookmark);
 
   if (copyCurrentTimeBtn) {
@@ -615,36 +637,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderBookmarks() {
     if (!bookmarksList) return;
-    const currentVideoBookmarks = player.state.bookmarks.filter(b => b.videoId === player.videoId);
+    const allBookmarks = player.state.bookmarks || [];
+    const currentVideoBookmarks = allBookmarks.filter(b => b && b.videoId === player.videoId);
 
-    if (currentVideoBookmarks.length === 0) {
-      bookmarksList.innerHTML = `<div style="color: var(--text-dim); font-size: 0.8rem; text-align: center; padding: 1rem;">No markers saved for this video yet. Click "⭐ Mark Time" to save one!</div>`;
+    // Update Counts
+    if (bmCountAll) bmCountAll.textContent = allBookmarks.length;
+    if (bmCountCurrent) bmCountCurrent.textContent = currentVideoBookmarks.length;
+
+    const displayList = activeBookmarkFilter === 'current' ? currentVideoBookmarks : allBookmarks;
+
+    if (displayList.length === 0) {
+      const emptyMsg = activeBookmarkFilter === 'current'
+        ? `No markers saved for this video yet. Click "⭐ Mark Time" to save one!`
+        : `No markers saved yet. Click "⭐ Mark Time" to bookmark timestamps from any video!`;
+      bookmarksList.innerHTML = `<div style="color: var(--text-dim); font-size: 0.8rem; text-align: center; padding: 1rem;">${emptyMsg}</div>`;
       renderTimelineMarkers();
       return;
     }
 
-    bookmarksList.innerHTML = currentVideoBookmarks.map(bm => `
-      <div class="bookmark-item">
-        <div class="bookmark-left" data-time="${bm.time}" title="Click to jump to ${player.formatTime(bm.time)}">
-          <span class="bookmark-time-tag">${player.formatTime(bm.time)}</span>
-          <span class="bookmark-label">${bm.label}</span>
-        </div>
-        <div class="bookmark-actions">
-          <button class="btn-icon copy-marker-btn" data-time="${bm.time}" data-vid="${bm.videoId || player.videoId}" title="Copy YouTube Timestamp Link">
-            <span class="marker-copy-icon">🔗</span>
-          </button>
-          <button class="btn-icon delete-marker-btn" data-id="${bm.id}" title="Remove Marker" style="color: #f87171;">
-            ✕
-          </button>
-        </div>
-      </div>
-    `).join('');
+    bookmarksList.innerHTML = displayList.map(bm => {
+      const isCurrent = bm.videoId === player.videoId;
+      const title = bm.videoTitle || `Video: ${bm.videoId}`;
+      const url = bm.videoUrl || `https://youtu.be/${bm.videoId}?t=${Math.floor(bm.time)}`;
 
+      return `
+        <div class="bookmark-item ${isCurrent ? 'is-current-video' : ''}">
+          <div class="bookmark-left" data-time="${bm.time}" data-vid="${bm.videoId}" title="Click to open & jump to ${player.formatTime(bm.time)}">
+            <div class="bm-video-title">
+              <span>📺</span>
+              <span>${title}</span>
+              ${isCurrent ? '<span style="font-size: 0.65rem; background: rgba(59, 130, 246, 0.25); color: #93c5fd; padding: 1px 5px; border-radius: 3px; margin-left: 4px;">Active</span>' : ''}
+            </div>
+            <div class="bm-time-row">
+              <span class="bookmark-time-tag">${player.formatTime(bm.time)}</span>
+              <span class="bookmark-label">${bm.label || `Timestamp @ ${player.formatTime(bm.time)}`}</span>
+            </div>
+          </div>
+          <div class="bookmark-actions">
+            <button class="btn-icon copy-marker-btn" data-url="${url}" title="Copy YouTube Timestamp Link: ${url}">
+              <span class="marker-copy-icon">🔗</span>
+            </button>
+            <button class="btn-icon delete-marker-btn" data-id="${bm.id}" title="Remove Marker" style="color: #f87171;">
+              ✕
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Jump to marker (same or different video)
     bookmarksList.querySelectorAll('.bookmark-left').forEach(el => {
       el.addEventListener('click', () => {
         const time = parseFloat(el.getAttribute('data-time'));
-        player.seekTo(time, true);
-        gestureEngine.showMomentaryFeedback(`Jumped to ${player.formatTime(time)}`, 'info');
+        const targetVid = el.getAttribute('data-vid');
+
+        if (targetVid === player.videoId) {
+          player.seekTo(time, true);
+          gestureEngine.showMomentaryFeedback(`⭐ Jumped to ${player.formatTime(time)}`, 'info');
+        } else {
+          loadNewVideo(targetVid);
+          setTimeout(() => {
+            player.seekTo(time, true);
+            gestureEngine.showMomentaryFeedback(`📺 Switched video & jumped to ${player.formatTime(time)}`, 'info');
+          }, 350);
+        }
       });
     });
 
@@ -652,15 +708,13 @@ document.addEventListener('DOMContentLoaded', () => {
     bookmarksList.querySelectorAll('.copy-marker-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const time = Math.floor(parseFloat(btn.getAttribute('data-time')));
-        const vid = btn.getAttribute('data-vid') || player.videoId;
-        const timestampUrl = `https://youtu.be/${vid}?t=${time}`;
+        const timestampUrl = btn.getAttribute('data-url');
 
         try {
           await navigator.clipboard.writeText(timestampUrl);
           const icon = btn.querySelector('.marker-copy-icon');
           if (icon) icon.textContent = '✓';
-          gestureEngine.showMomentaryFeedback(`📋 Copied: youtu.be/${vid}?t=${time}s`, 'info');
+          gestureEngine.showMomentaryFeedback(`📋 Copied URL: ${timestampUrl}`, 'info');
           setTimeout(() => {
             if (icon) icon.textContent = '🔗';
           }, 2000);
