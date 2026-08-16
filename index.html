@@ -12,7 +12,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=3.6" />
+  <link rel="stylesheet" href="style.css?v=3.7" />
+
+  <script>
+    function openHelpModal() {
+      var m = document.getElementById('helpModal');
+      if (m) {
+        m.style.setProperty('display', 'flex', 'important');
+        m.style.setProperty('opacity', '1', 'important');
+        m.style.setProperty('visibility', 'visible', 'important');
+        m.style.setProperty('pointer-events', 'auto', 'important');
+        m.classList.add('active');
+      }
+    }
+    function closeHelpModal() {
+      var m = document.getElementById('helpModal');
+      if (m) {
+        m.style.setProperty('display', 'none', 'important');
+        m.style.setProperty('opacity', '0', 'important');
+        m.style.setProperty('visibility', 'hidden', 'important');
+        m.style.setProperty('pointer-events', 'none', 'important');
+        m.classList.remove('active');
+      }
+    }
+    window.openHelpModal = openHelpModal;
+    window.closeHelpModal = closeHelpModal;
+  </script>
 </head>
 <body>
   <!-- Ambient background glow effect -->
@@ -59,7 +84,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.6</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.7</div>
     </div>
   </header>
 
@@ -372,8 +397,8 @@
   </main>
 
   <!-- Help & Gesture Guide Modal -->
-  <div id="helpModal" class="modal-backdrop" onclick="if(event.target===this)closeHelpModal();">
-    <div class="modal-card">
+  <div id="helpModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 999999; align-items: center; justify-content: center; backdrop-filter: blur(8px);" onclick="if(event.target===this)closeHelpModal();">
+    <div class="modal-card" style="position: relative; z-index: 1000000; background: #151923; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; width: 100%; max-width: 620px; padding: 1.75rem; box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9);">
       <div class="modal-title">
         <span>🎮 Gesture Guide & Controls</span>
         <button id="closeHelpBtn" class="btn-icon" onclick="closeHelpModal();" style="font-size: 1.2rem;">✕</button>
@@ -423,35 +448,10 @@
     </div>
   </div>
 
-  <script>
-    function openHelpModal() {
-      var m = document.getElementById('helpModal');
-      if (m) {
-        m.style.display = 'flex';
-        m.style.opacity = '1';
-        m.style.visibility = 'visible';
-        m.style.pointerEvents = 'auto';
-        m.classList.add('active');
-      }
-    }
-    function closeHelpModal() {
-      var m = document.getElementById('helpModal');
-      if (m) {
-        m.style.display = 'none';
-        m.style.opacity = '0';
-        m.style.visibility = 'hidden';
-        m.style.pointerEvents = 'none';
-        m.classList.remove('active');
-      }
-    }
-    window.openHelpModal = openHelpModal;
-    window.closeHelpModal = closeHelpModal;
-  </script>
-
   <!-- Scripts -->
-  <script src="recommendations.js?v=3.6"></script>
-  <script src="player.js?v=3.6"></script>
-  <script src="gesture-engine.js?v=3.6"></script>
-  <script src="app.js?v=3.6"></script>
+  <script src="recommendations.js?v=3.7"></script>
+  <script src="player.js?v=3.7"></script>
+  <script src="gesture-engine.js?v=3.7"></script>
+  <script src="app.js?v=3.7"></script>
 </body>
 </html>
