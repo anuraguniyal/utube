@@ -1589,42 +1589,38 @@ input:checked + .toggle-slider:before {
   cursor: pointer;
 }
 
-/* Secondary Toolbar */
-.controls-secondary-bar {
-  display: flex;
+/* Flowing Video Size Group Controls */
+.video-size-group {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 0.5rem;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-}
-
-.sub-group {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.25rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  flex-wrap: nowrap;
 }
 
 .sub-group-label {
   color: var(--text-dim);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   letter-spacing: 0.05em;
-  margin-right: 0.2rem;
+  margin-right: 0.15rem;
+  margin-left: 0.15rem;
+  user-select: none;
 }
 
 .tag-btn {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border: none;
   color: var(--text-muted);
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1634,29 +1630,20 @@ input:checked + .toggle-slider:before {
 }
 
 .tag-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
   color: #fff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .tag-btn.active {
-  background: rgba(245, 158, 11, 0.2);
-  color: var(--accent-amber);
-  border-color: rgba(245, 158, 11, 0.4);
+  background: var(--accent-blue);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }
 
 /* ==========================================================================
-   Container Query Breakpoints for Dynamic Video Sizing
-   Keeps all controls fully organized and visible when resized small
+   Responsive Flow Layout for Dynamic Video Sizing
    ========================================================================== */
-@container playerbox (max-width: 920px) {
-  .controls-center-cluster {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@container playerbox (max-width: 640px) {
+@media (max-width: 640px) {
   .player-controls-panel {
     padding: 0.65rem 0.75rem 0.85rem;
     gap: 0.5rem;
