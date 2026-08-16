@@ -136,20 +136,22 @@ class PlayerController {
 
   handleStateChange(playerState) {
     // YT.PlayerState: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (video cued)
-    if (playerState === 1 || playerState === 3) { // PLAYING or BUFFERING
+    if (playerState === 1) { // PLAYING
       this.state.isPlaying = true;
       this.state.duration = this.player.getDuration() || this.state.duration;
 
-      // When switching videos, enforce the pending timestamp seek as soon as the player buffers/plays
+      // When switching videos, enforce the pending timestamp seek once playback is active
       if (typeof this.pendingSeekTime === 'number' && this.pendingSeekTime > 0) {
         const target = this.pendingSeekTime;
-        this.pendingSeekTime = null;
         try {
           this.player.seekTo(target, true);
           this.state.currentTime = target;
           this.virtualTime = target;
         } catch (e) {}
       }
+    } else if (playerState === 3) { // BUFFERING
+      this.state.isPlaying = true;
+      this.state.duration = this.player.getDuration() || this.state.duration;
     } else if (playerState === 2 || playerState === 0) { // PAUSED / ENDED
       if (!this.state.isReversePlaying) {
         this.state.isPlaying = false;
@@ -194,6 +196,27 @@ class PlayerController {
           const time = this.player.getCurrentTime() || 0;
           this.state.currentTime = time;
           this.virtualTime = time;
+
+          // Cross-video timestamp seek enforcement
+          if (typeof this.pendingSeekTime === 'number' && this.pendingSeekTime > 0) {
+            if (this.state.isPlaying) {
+              if (Math.abs(time - this.pendingSeekTime) > 1.5) {
+                this.seekAttempts = (this.seekAttempts || 0) + 1;
+                if (this.seekAttempts <= 20) { // Try for ~1.5s until stream buffer syncs
+                  try {
+                    this.player.seekTo(this.pendingSeekTime, true);
+                  } catch (e) {}
+                } else {
+                  this.pendingSeekTime = null;
+                  this.seekAttempts = 0;
+                }
+              } else {
+                // Target timestamp locked and playing!
+                this.pendingSeekTime = null;
+                this.seekAttempts = 0;
+              }
+            }
+          }
 
           // Throttled persistence of current video position
           if (this.state.isPlaying && Math.abs(time - this.lastSavedPosition) >= 3) {
