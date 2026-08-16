@@ -939,24 +939,30 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 15. Help Modal
-  if (openHelpBtn && helpModal) {
+  if (openHelpBtn) {
     openHelpBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
-      helpModal.classList.add('active');
+      if (typeof window.openHelpModal === 'function') {
+        window.openHelpModal();
+      }
     });
   }
 
-  if (closeHelpBtn && helpModal) {
+  if (closeHelpBtn) {
     closeHelpBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
-      helpModal.classList.remove('active');
+      if (typeof window.closeHelpModal === 'function') {
+        window.closeHelpModal();
+      }
     });
   }
 
   if (helpModal) {
     helpModal.addEventListener('click', (e) => {
-      if (e.target === helpModal) {
-        helpModal.classList.remove('active');
+      if (e.target === helpModal && typeof window.closeHelpModal === 'function') {
+        window.closeHelpModal();
       }
     });
   }
@@ -1050,7 +1056,15 @@ document.addEventListener('DOMContentLoaded', () => {
       case '?':
       case '/':
         e.preventDefault();
-        helpModal.classList.toggle('active');
+        const m = document.getElementById('helpModal');
+        if (m && m.style.display === 'flex') {
+          if (typeof window.closeHelpModal === 'function') window.closeHelpModal();
+        } else {
+          if (typeof window.openHelpModal === 'function') window.openHelpModal();
+        }
+        break;
+      case 'escape':
+        if (typeof window.closeHelpModal === 'function') window.closeHelpModal();
         break;
     }
   });
