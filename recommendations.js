@@ -29,6 +29,61 @@ function formatViewCount(views) {
   return `${num} views`;
 }
 
+// Helper to format release dates into relative time ("2 days ago", "1 week ago", "3 months ago", etc.)
+function formatPublishedDate(pub) {
+  if (!pub) return '';
+  if (typeof pub === 'string') {
+    const s = pub.trim();
+    if (s.toLowerCase().includes('ago')) return s;
+    if (s.toLowerCase().includes('stream')) return s;
+    const parsedDate = new Date(s);
+    if (!isNaN(parsedDate.getTime())) {
+      const now = Date.now();
+      const diffSec = Math.floor((now - parsedDate.getTime()) / 1000);
+      if (diffSec < 60) return 'Just now';
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)} minutes ago`;
+      if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hours ago`;
+      if (diffSec < 86400 * 7) {
+        const days = Math.floor(diffSec / 86400);
+        return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+      }
+      if (diffSec < 86400 * 30) {
+        const weeks = Math.floor(diffSec / (86400 * 7));
+        return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+      }
+      if (diffSec < 86400 * 365) {
+        const months = Math.floor(diffSec / (86400 * 30));
+        return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+      }
+      const years = Math.floor(diffSec / (86400 * 365));
+      return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+    }
+    return s;
+  }
+  if (typeof pub === 'number') {
+    const ms = pub < 1e11 ? pub * 1000 : pub;
+    const diffSec = Math.floor((Date.now() - ms) / 1000);
+    if (diffSec < 60) return 'Just now';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)} minutes ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hours ago`;
+    if (diffSec < 86400 * 7) {
+      const days = Math.floor(diffSec / 86400);
+      return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    }
+    if (diffSec < 86400 * 30) {
+      const weeks = Math.floor(diffSec / (86400 * 7));
+      return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+    }
+    if (diffSec < 86400 * 365) {
+      const months = Math.floor(diffSec / (86400 * 30));
+      return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+    }
+    const years = Math.floor(diffSec / (86400 * 365));
+    return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+  }
+  return '';
+}
+
 // Normalizer for Invidious/Piped live API search items
 function normalizeSearchItem(item, query) {
   if (!item) return null;
@@ -42,7 +97,8 @@ function normalizeSearchItem(item, query) {
   const title = item.title || `YouTube Video (${id})`;
   const channel = item.author || item.uploaderName || item.channel || item.uploader || 'YouTube Creator';
   const views = formatViewCount(item.viewCountText || item.views || item.viewCount);
-  const published = item.publishedText || item.uploadedDate || item.published || 'Recent';
+  const rawPublished = item.publishedText || item.uploadedDate || item.published || item.publishedDate || item.uploadDate || item.uploaded || item.uploadedText;
+  const published = formatPublishedDate(rawPublished) || 'Recent';
   
   let duration = 'Video';
   if (typeof item.duration === 'string' && item.duration) {

@@ -8,8 +8,9 @@ module.exports = {
   async run(cdp) {
     // Wait for initial page hydration
     await new Promise(r => setTimeout(r, 800));
-    // Click Add Bookmark button
-    await cdp.evaluate(`document.getElementById("addBookmarkCardBtn").click()`);
-    await new Promise(r => setTimeout(r, 800));
+    // Execute Search
+    await cdp.evaluate(`window.executeSearch("lofi chill beats")`);
+    // Wait for live search results to load
+    await new Promise(r => setTimeout(r, 2000));
   }
 };

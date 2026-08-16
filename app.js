@@ -812,6 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="search-card-channel" style="color: #93c5fd; font-weight: 600;">${item.channel || 'YouTube'}</span>
               <span>•</span>
               <span>${item.views || 'Popular'}</span>
+              ${item.published ? `<span>•</span><span class="search-card-published" style="color: #e2e8f0; font-weight: 500;">${item.published}</span>` : ''}
             </div>
           </div>
           <div class="search-card-actions" style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto;">
