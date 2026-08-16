@@ -747,12 +747,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = bm.videoUrl || `https://youtu.be/${bm.videoId}?t=${Math.floor(bm.time)}`;
         return `
           <div class="bookmark-row">
-            <div class="bm-row-left" data-time="${bm.time}" data-vid="${bm.videoId}" title="Jump to ${player.formatTime(bm.time)}">
+            <div class="bm-row-left" data-time="${bm.time}" data-vid="${bm.videoId}" title="Click to play from ${player.formatTime(bm.time)}">
               <span class="bookmark-time-tag">${player.formatTime(bm.time)}</span>
-              <span class="bookmark-label" title="${bm.label || `Timestamp @ ${player.formatTime(bm.time)}`}">${bm.label || `Timestamp @ ${player.formatTime(bm.time)}`}</span>
             </div>
             <div class="bm-row-actions">
-              <button class="btn-icon copy-marker-btn" data-url="${url}" title="Copy Link: ${url}">
+              <button class="bm-row-play-btn" data-time="${bm.time}" data-vid="${bm.videoId}" title="Play from ${player.formatTime(bm.time)}">
+                <span>▶ Play</span>
+              </button>
+              <button class="btn-icon copy-marker-btn" data-url="${url}" title="Copy Timestamp Link: ${url}">
                 <span class="marker-copy-icon">🔗</span>
               </button>
               <button class="btn-icon delete-marker-btn" data-id="${bm.id}" title="Remove Marker" style="color: #f87171;">
@@ -775,22 +777,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bookmarksList.innerHTML = html;
 
-    // Jump to marker row
+    // Jump / Play marker handler
+    const handleSeekToMarker = (targetVid, time) => {
+      if (targetVid === player.videoId) {
+        player.seekTo(time, true);
+        gestureEngine.showMomentaryFeedback(`⭐ Jumped to ${player.formatTime(time)}`, 'info');
+      } else {
+        loadNewVideo(targetVid);
+        setTimeout(() => {
+          player.seekTo(time, true);
+          gestureEngine.showMomentaryFeedback(`📺 Loaded video & jumped to ${player.formatTime(time)}`, 'info');
+        }, 350);
+      }
+    };
+
     bookmarksList.querySelectorAll('.bm-row-left').forEach(el => {
       el.addEventListener('click', () => {
         const time = parseFloat(el.getAttribute('data-time'));
         const targetVid = el.getAttribute('data-vid');
+        handleSeekToMarker(targetVid, time);
+      });
+    });
 
-        if (targetVid === player.videoId) {
-          player.seekTo(time, true);
-          gestureEngine.showMomentaryFeedback(`⭐ Jumped to ${player.formatTime(time)}`, 'info');
-        } else {
-          loadNewVideo(targetVid);
-          setTimeout(() => {
-            player.seekTo(time, true);
-            gestureEngine.showMomentaryFeedback(`📺 Loaded video & jumped to ${player.formatTime(time)}`, 'info');
-          }, 350);
-        }
+    bookmarksList.querySelectorAll('.bm-row-play-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const time = parseFloat(btn.getAttribute('data-time'));
+        const targetVid = btn.getAttribute('data-vid');
+        handleSeekToMarker(targetVid, time);
       });
     });
 
