@@ -463,11 +463,14 @@ class PlayerController {
 
   seekTo(seconds, allowSeekAhead = true) {
     if (!this.isReady || !this.player) return;
-    const clamped = Math.max(0, Math.min(this.state.duration, seconds));
-    this.state.currentTime = clamped;
-    this.virtualTime = clamped;
+    let target = Math.max(0, parseFloat(seconds) || 0);
+    if (this.state.duration > 0) {
+      target = Math.min(this.state.duration, target);
+    }
+    this.state.currentTime = target;
+    this.virtualTime = target;
     try {
-      this.player.seekTo(clamped, allowSeekAhead);
+      this.player.seekTo(target, allowSeekAhead);
     } catch (e) {}
     this.notifyState();
   }
@@ -591,7 +594,7 @@ class PlayerController {
 
   // --- Video Loading & URL Parsing ---
 
-  loadVideo(inputUrlOrId) {
+  loadVideo(inputUrlOrId, startSeconds = 0) {
     const videoId = this.parseYouTubeId(inputUrlOrId);
     if (!videoId) {
       return { success: false, error: 'Invalid YouTube URL or Video ID' };
@@ -601,20 +604,25 @@ class PlayerController {
     this.stopReverse();
     this.stopForwardBoost();
 
+    const startSec = Math.max(0, parseFloat(startSeconds) || 0);
+
     if (this.isReady && this.player && this.player.loadVideoById) {
       try {
         this.player.loadVideoById({
           videoId: videoId,
-          startSeconds: 0
+          startSeconds: startSec
         });
         this.state.isPlaying = true;
-        this.state.currentTime = 0;
-        this.virtualTime = 0;
+        this.state.currentTime = startSec;
+        this.virtualTime = startSec;
         this.notifyState();
       } catch (e) {
         console.warn('Error loading video by ID:', e);
         try {
-          this.player.cueVideoById(videoId);
+          this.player.cueVideoById({
+            videoId: videoId,
+            startSeconds: startSec
+          });
           this.player.playVideo();
         } catch (err) {}
       }

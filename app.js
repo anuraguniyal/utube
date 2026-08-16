@@ -217,15 +217,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function loadNewVideo(query) {
-    const res = player.loadVideo(query);
+  function loadNewVideo(query, startTime = 0) {
+    const res = player.loadVideo(query, startTime);
     if (res.success) {
       updateActiveCard(res.videoId);
       if (urlInput) urlInput.value = `https://youtu.be/${res.videoId}`;
       
-      gestureEngine.showMomentaryFeedback('Loaded Video', 'info');
       updateVideoMetadata(res.videoId);
       renderBookmarks();
+
+      if (startTime > 0) {
+        setTimeout(() => {
+          player.seekTo(startTime, true);
+          player.play();
+        }, 300);
+      }
 
       // Scroll smoothly up to the player if user was browsing recommendations below
       if (window.scrollY > 300) {
@@ -779,15 +785,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Jump / Play marker handler
     const handleSeekToMarker = (targetVid, time) => {
+      const targetTime = Math.max(0, parseFloat(time) || 0);
       if (targetVid === player.videoId) {
-        player.seekTo(time, true);
-        gestureEngine.showMomentaryFeedback(`⭐ Jumped to ${player.formatTime(time)}`, 'info');
+        player.seekTo(targetTime, true);
+        player.play();
+        gestureEngine.showMomentaryFeedback(`⭐ Playing @ ${player.formatTime(targetTime)}`, 'info');
       } else {
-        loadNewVideo(targetVid);
-        setTimeout(() => {
-          player.seekTo(time, true);
-          gestureEngine.showMomentaryFeedback(`📺 Loaded video & jumped to ${player.formatTime(time)}`, 'info');
-        }, 350);
+        loadNewVideo(targetVid, targetTime);
+        gestureEngine.showMomentaryFeedback(`📺 Loaded video @ ${player.formatTime(targetTime)}`, 'info');
       }
     };
 
