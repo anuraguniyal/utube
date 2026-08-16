@@ -59,7 +59,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v1.9</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v2.0</div>
     </div>
   </header>
 
@@ -340,24 +340,24 @@
       <!-- Right Column: Saved Timestamp Markers & Bookmarks -->
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">
-            <span>📌 Saved Markers</span>
+          <h3 class="card-title" style="font-size: 0.95rem; white-space: nowrap;">
+            <span>📌 Markers</span>
           </h3>
-          <div style="display: flex; align-items: center; gap: 0.35rem;">
-            <button id="addBookmarkCardBtn" class="btn-primary" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: var(--radius-full);" title="Mark current video timestamp">
+          <div class="card-header-actions">
+            <button id="addBookmarkCardBtn" class="btn-primary btn-sm" title="Mark current video timestamp">
               <span>⭐ Mark Time</span>
             </button>
-            <button id="copyCurrentTimeBtn" class="btn-ghost" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: var(--radius-full);" title="Copy YouTube link with current timestamp">
+            <button id="copyCurrentTimeBtn" class="btn-ghost btn-sm" title="Copy YouTube link with current timestamp">
               <span id="copyCurrentTimeIcon">🔗</span>
-              <span>Copy Time URL</span>
+              <span>Copy Link</span>
             </button>
           </div>
         </div>
 
         <!-- Filter Sub-Bar: All Videos vs This Video -->
         <div class="bookmark-filter-bar">
-          <button id="filterBmAll" class="bm-filter-btn active">All Videos (<span id="bmCountAll">0</span>)</button>
-          <button id="filterBmCurrent" class="bm-filter-btn">This Video (<span id="bmCountCurrent">0</span>)</button>
+          <button id="filterBmAll" class="bm-filter-btn active">All (<span id="bmCountAll">0</span>)</button>
+          <button id="filterBmCurrent" class="bm-filter-btn">Current Video (<span id="bmCountCurrent">0</span>)</button>
         </div>
 
         <div id="bookmarksList" class="bookmarks-list">

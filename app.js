@@ -213,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (meta && vidId === player.videoId) {
       if (titleEl) titleEl.textContent = meta.title;
       if (descEl) descEl.textContent = meta.description;
+      renderBookmarks();
     }
   }
 
