@@ -252,11 +252,12 @@ async function runTests() {
     const standardWidth = await cdp.evaluate('document.getElementById("videoViewport").style.maxWidth');
     assert(standardWidth === '1080px', 'Standard button sets max-width to 1080px', `Found: "${standardWidth}"`);
 
-    // TEST 5: Frame Stepping Buttons
-    console.log('\n--- Test Group 5: Frame Controls ---');
+    // TEST 5: Frame Stepping & Screenshot Buttons
+    console.log('\n--- Test Group 5: Frame Controls & Screenshot Snapshot ---');
     const prevFrameBtn = await cdp.evaluate('!!document.getElementById("prevFrameBtn")');
     const nextFrameBtn = await cdp.evaluate('!!document.getElementById("nextFrameBtn")');
-    assert(prevFrameBtn && nextFrameBtn, 'Prev & Next Frame Step buttons exist in control bar');
+    const screenshotFrameBtn = await cdp.evaluate('!!document.getElementById("screenshotFrameBtn")');
+    assert(prevFrameBtn && nextFrameBtn && screenshotFrameBtn, 'Prev/Next Frame Step & Screenshot Frame buttons exist in control bar');
 
     // TEST 6: Bookmarks Store and Interactive Marker Creation
     console.log('\n--- Test Group 6: Bookmarks & Interactive Marker Creation ---');

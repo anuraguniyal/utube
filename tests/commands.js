@@ -8,8 +8,8 @@ module.exports = {
   async run(cdp) {
     // Wait for initial page hydration
     await new Promise(r => setTimeout(r, 800));
-    // Click Compact Mode
-    await cdp.evaluate(`document.getElementById("sizeCompactBtn").click()`);
-    await new Promise(r => setTimeout(r, 600));
+    // Click Snapshot button
+    await cdp.evaluate(`document.getElementById("screenshotFrameBtn").click()`);
+    await new Promise(r => setTimeout(r, 800));
   }
 };

@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const prevFrameBtn = document.getElementById('prevFrameBtn');
   const nextFrameBtn = document.getElementById('nextFrameBtn');
+  const screenshotFrameBtn = document.getElementById('screenshotFrameBtn');
 
   const timelineContainer = document.getElementById('timelineContainer');
   const timelineProgress = document.getElementById('timelineProgress');
@@ -455,6 +456,115 @@ document.addEventListener('DOMContentLoaded', () => {
 
   prevFrameBtn.addEventListener('click', () => player.stepFrame(-1));
   nextFrameBtn.addEventListener('click', () => player.stepFrame(1));
+
+  // Screenshot Current Frame Action
+  async function captureCurrentFrameScreenshot() {
+    const vidId = player.videoId;
+    if (!vidId) return;
+
+    const currentTime = player.getCurrentTime() || player.state.currentTime || 0;
+    const formattedTime = player.formatTime(currentTime);
+    const videoTitle = resolveVideoTitleSync(vidId, player.state.title || 'YouTube Video');
+
+    gestureEngine.showMomentaryFeedback(`📸 Capturing frame @ ${formattedTime}...`, 'info');
+
+    try {
+      // 1. Create a high-res 16:9 canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 1920;
+      canvas.height = 1080;
+      const ctx = canvas.getContext('2d');
+
+      // Fill rich dark backdrop
+      ctx.fillStyle = '#0a0d14';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 2. Fetch highest quality available frame thumbnail
+      const imgUrls = [
+        `https://img.youtube.com/vi/${vidId}/maxresdefault.jpg`,
+        `https://img.youtube.com/vi/${vidId}/sddefault.jpg`,
+        `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`,
+        `https://img.youtube.com/vi/${vidId}/0.jpg`
+      ];
+
+      let loadedImg = null;
+      for (const url of imgUrls) {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise((resolve, reject) => {
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Image failed'));
+            img.src = url;
+            setTimeout(() => reject(new Error('Image timeout')), 3000);
+          });
+          if (img.naturalWidth > 120) {
+            loadedImg = img;
+            break;
+          }
+        } catch (e) {}
+      }
+
+      if (loadedImg) {
+        ctx.drawImage(loadedImg, 0, 0, canvas.width, canvas.height);
+      } else {
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        grad.addColorStop(0, '#1e293b');
+        grad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // 3. Render watermark gradient and details badge on bottom
+      const bottomGrad = ctx.createLinearGradient(0, canvas.height - 180, 0, canvas.height);
+      bottomGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      bottomGrad.addColorStop(1, 'rgba(0, 0, 0, 0.88)');
+      ctx.fillStyle = bottomGrad;
+      ctx.fillRect(0, canvas.height - 180, canvas.width, 180);
+
+      // Title & Timestamp
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 36px system-ui, -apple-system, sans-serif';
+      ctx.fillText(videoTitle, 48, canvas.height - 72);
+
+      ctx.font = '700 24px monospace';
+      ctx.fillStyle = '#facc15';
+      ctx.fillText(`⏱ Timestamp: ${formattedTime} • UTUBE Frame Snapshot`, 48, canvas.height - 30);
+
+      // 4. Download PNG Blob
+      canvas.toBlob((blob) => {
+        if (!blob) throw new Error('Blob generation failed');
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const sanitizedTitle = videoTitle.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30);
+        a.download = `UTUBE_${sanitizedTitle}_${formattedTime.replace(':', 'm')}s.png`;
+        a.href = downloadUrl;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          a.remove();
+          URL.revokeObjectURL(downloadUrl);
+        }, 1000);
+
+        gestureEngine.showMomentaryFeedback(`📸 Frame snapshot saved! (${formattedTime})`, 'info');
+      }, 'image/png');
+
+    } catch (err) {
+      console.warn('Canvas export failed, falling back to direct thumbnail:', err);
+      const a = document.createElement('a');
+      a.href = `https://img.youtube.com/vi/${vidId}/maxresdefault.jpg`;
+      a.download = `UTUBE_${vidId}_${formattedTime.replace(':', 'm')}s.jpg`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 1000);
+      gestureEngine.showMomentaryFeedback(`📸 Snapshot image downloaded! (${formattedTime})`, 'info');
+    }
+  }
+
+  if (screenshotFrameBtn) {
+    screenshotFrameBtn.addEventListener('click', captureCurrentFrameScreenshot);
+  }
 
   // 8. Timeline Scrubber Interaction & YouTube Frame Viewer
   let isTimelineDragging = false;
@@ -1246,6 +1356,10 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'f':
         e.preventDefault();
         fullscreenBtn.click();
+        break;
+      case 's':
+        e.preventDefault();
+        captureCurrentFrameScreenshot();
         break;
       case '?':
       case '/':

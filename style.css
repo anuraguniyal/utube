@@ -1292,6 +1292,23 @@ body {
   color: #fff;
 }
 
+.ctrl-btn-snapshot {
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.ctrl-btn-snapshot:hover {
+  background: rgba(56, 189, 248, 0.2);
+  color: #fff;
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+.ctrl-btn-snapshot:active {
+  transform: scale(0.95);
+}
+
 .time-display {
   font-family: var(--font-mono);
   font-size: 0.825rem;

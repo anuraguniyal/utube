@@ -90,7 +90,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v5.7</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v5.8</div>
     </div>
   </header>
 
@@ -233,10 +233,14 @@
                 <button class="speed-pill" data-speed="4">4.0x</button>
               </div>
 
-              <!-- Right: Frame Stepper, Captions, Volume, Fullscreen -->
+              <!-- Right: Frame Stepper, Screenshot Frame, Captions, Volume, Fullscreen -->
               <div class="controls-right-cluster">
                 <button id="prevFrameBtn" class="ctrl-btn" title="Previous Frame (J or ,)">◀ 1 Frame</button>
                 <button id="nextFrameBtn" class="ctrl-btn" title="Next Frame (K or .)">1 Frame ▶</button>
+                <button id="screenshotFrameBtn" class="ctrl-btn ctrl-btn-snapshot" title="Take Frame Screenshot (S)">
+                  <span>📸</span>
+                  <span>Snapshot</span>
+                </button>
 
                 <!-- Captions & Options Cluster -->
                 <div class="captions-wrapper">
@@ -515,6 +519,9 @@
           <div class="shortcut-item" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.4rem 0.65rem; color: #cbd5e1; font-size: 0.775rem;">
             <span>Toggle Fullscreen</span><span class="kbd" style="font-family: monospace; font-weight: 700; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 0.12rem 0.45rem; color: #93c5fd;">F</span>
           </div>
+          <div class="shortcut-item" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.4rem 0.65rem; color: #cbd5e1; font-size: 0.775rem;">
+            <span>Screenshot Frame (Download)</span><span class="kbd" style="font-family: monospace; font-weight: 700; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 0.12rem 0.45rem; color: #93c5fd;">S</span>
+          </div>
         </div>
       </div>
 
@@ -522,9 +529,9 @@
   </dialog>
 
   <!-- Scripts -->
-  <script src="recommendations.js?v=5.7"></script>
-  <script src="player.js?v=5.7"></script>
-  <script src="gesture-engine.js?v=5.7"></script>
-  <script src="app.js?v=5.7"></script>
+  <script src="recommendations.js?v=5.8"></script>
+  <script src="player.js?v=5.8"></script>
+  <script src="gesture-engine.js?v=5.8"></script>
+  <script src="app.js?v=5.8"></script>
 </body>
 </html>
