@@ -298,6 +298,81 @@ const YOUTUBE_RECOMMENDATIONS = [
     thumbnail: 'https://img.youtube.com/vi/J---aiyznGQ/hqdefault.jpg',
     description: 'Viral rhythmic cartoon animation synched to hyper-fast piano arpeggios.'
   },
+  // Chess & Strategy
+  {
+    id: 'T5R36f2N_7A',
+    title: 'Magnus Carlsen vs Hikaru Nakamura — Speed Chess Championship Final',
+    channel: 'Chess.com',
+    avatar: '♟️',
+    views: '8.5M views',
+    published: '1 year ago',
+    duration: '22:15',
+    category: 'Chess',
+    thumbnail: 'https://img.youtube.com/vi/T5R36f2N_7A/hqdefault.jpg',
+    description: 'The ultimate blitz & bullet chess showdown between world champion Magnus Carlsen and Hikaru Nakamura.'
+  },
+  {
+    id: 'rKxXwF_ZrqM',
+    title: 'The Greatest Chess Game Ever Played (Kasparov vs Topalov 1999)',
+    channel: 'GothamChess',
+    avatar: '♟️',
+    views: '5.2M views',
+    published: '2 years ago',
+    duration: '18:40',
+    category: 'Chess',
+    thumbnail: 'https://img.youtube.com/vi/rKxXwF_ZrqM/hqdefault.jpg',
+    description: 'Levy Rozman analyzes Garry Kasparov legendary immortal rook sacrifice and tactical masterclass.'
+  },
+  {
+    id: 'fGNNqZ5Xz9o',
+    title: 'Top 10 Chess Opening Traps Everyone Falls For',
+    channel: 'agadmator\'s Chess Channel',
+    avatar: '♟️',
+    views: '12M views',
+    published: '3 years ago',
+    duration: '14:20',
+    category: 'Chess',
+    thumbnail: 'https://img.youtube.com/vi/fGNNqZ5Xz9o/hqdefault.jpg',
+    description: 'Essential chess traps in the Italian Game, Sicilian Defense, Fried Liver Attack, and Queen\'s Gambit.'
+  },
+  {
+    id: 'a3w8I8J4p8A',
+    title: 'Speedrun to 2000 Elo: Master Level Chess Fundamentals',
+    channel: 'Daniel Naroditsky',
+    avatar: '♟️',
+    views: '3.1M views',
+    published: '1 year ago',
+    duration: '31:05',
+    category: 'Chess',
+    thumbnail: 'https://img.youtube.com/vi/a3w8I8J4p8A/hqdefault.jpg',
+    description: 'Grandmaster Daniel Naroditsky teaches positional mastery, chess tactics, opening prep, and endgame conversion.'
+  },
+  // Programming & Technology
+  {
+    id: '_uQrJ0TkZlc',
+    title: 'Python Tutorial for Beginners - Full Course (Learn Python in 6 Hours)',
+    channel: 'Programming with Mosh',
+    avatar: '🐍',
+    views: '41M views',
+    published: '4 years ago',
+    duration: '06:14:07',
+    category: 'Coding & Tech',
+    thumbnail: 'https://img.youtube.com/vi/_uQrJ0TkZlc/hqdefault.jpg',
+    description: 'Complete modern Python programming course covering data types, OOP, libraries, and scripting.'
+  },
+  {
+    id: 'W6NZfCO5SIk',
+    title: 'JavaScript Tutorial for Beginners: Learn JavaScript in 1 Hour',
+    channel: 'Programming with Mosh',
+    avatar: '⚡',
+    views: '15M views',
+    published: '5 years ago',
+    duration: '48:16',
+    category: 'Coding & Tech',
+    thumbnail: 'https://img.youtube.com/vi/W6NZfCO5SIk/hqdefault.jpg',
+    description: 'Master JavaScript ES6 syntax, arrays, objects, functions, and modern browser development.'
+  },
+  // Science & Cosmos
   {
     id: 'uD4izuDMUQA',
     title: 'The Size of Space Comparison 4K (From Moon to Universe)',
@@ -314,76 +389,90 @@ const YOUTUBE_RECOMMENDATIONS = [
 
 /**
  * Multi-Engine YouTube Search Function
- * 1. Checks public Invidious/Piped search API instances with 1.8s timeout
- * 2. Fuzzy-matches against local curated catalog across titles, channels, descriptions, and categories
- * 3. Returns a clean array of results: [{ id, title, channel, avatar, views, published, duration, thumbnail, description, category }]
+ * 1. Checks local multi-field keyword matching first
+ * 2. Checks live Invidious / Piped API instances concurrently
+ * 3. Returns only genuine matching results (never random unrelated videos)
  */
 async function searchYouTubeVideos(query) {
   if (!query || typeof query !== 'string') return [];
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
-  // Local fuzzy / keyword match first for instant responses
-  const tokens = q.split(/\s+/).filter(Boolean);
+  // Local fuzzy / keyword match
+  const tokens = q.split(/\s+/).filter(t => t.length > 1);
   const localMatches = YOUTUBE_RECOMMENDATIONS.filter(video => {
     const text = `${video.title} ${video.channel} ${video.description} ${video.category}`.toLowerCase();
+    if (tokens.length === 0) return text.includes(q);
     return tokens.some(t => text.includes(t));
   }).sort((a, b) => {
     const aTitle = a.title.toLowerCase();
     const bTitle = b.title.toLowerCase();
-    const aScore = tokens.reduce((acc, t) => acc + (aTitle.includes(t) ? 2 : 1), 0);
-    const bScore = tokens.reduce((acc, t) => acc + (bTitle.includes(t) ? 2 : 1), 0);
+    const aScore = tokens.reduce((acc, t) => acc + (aTitle.includes(t) ? 3 : 1), 0);
+    const bScore = tokens.reduce((acc, t) => acc + (bTitle.includes(t) ? 3 : 1), 0);
     return bScore - aScore;
   });
 
-  // If local catalog matches exist, return them immediately
+  // Return immediate local matches if available (0ms instant response)
   if (localMatches.length > 0) {
     return localMatches;
   }
 
-  // Attempt live Invidious search with fast abort timeout (500ms)
+  // Attempt live Invidious / Piped search concurrently with 1.5s timeout
   let liveResults = [];
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 500);
+    const timeoutId = setTimeout(() => controller.abort(), 1500);
 
     const endpoints = [
       `https://inv.nadeko.net/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
-      `https://invidious.nerdvpn.de/api/v1/search?q=${encodeURIComponent(q)}&type=video`
+      `https://invidious.jing.rocks/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
+      `https://yt.artemislena.eu/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
+      `https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(q)}&filter=videos`
     ];
 
-    for (const url of endpoints) {
-      try {
-        const res = await fetch(url, { signal: controller.signal });
-        if (res.ok) {
-          const json = await res.json();
-          if (Array.isArray(json) && json.length > 0) {
-            liveResults = json.filter(item => item && (item.videoId || item.id)).map(item => {
-              const vId = item.videoId || item.id;
-              const formatSec = (sec) => {
-                if (!sec || isNaN(sec)) return '';
-                const m = Math.floor(sec / 60);
-                const s = Math.floor(sec % 60);
-                return `${m}:${s < 10 ? '0' : ''}${s}`;
-              };
-              return {
-                id: vId,
-                title: item.title || `Video (${vId})`,
-                channel: item.author || item.channel || 'YouTube Creator',
-                avatar: '📺',
-                views: item.viewCountText || (item.viewCount ? `${(item.viewCount / 1000000).toFixed(1)}M views` : 'Popular'),
-                published: item.publishedText || 'Recent',
-                duration: item.lengthSeconds ? formatSec(item.lengthSeconds) : 'Video',
-                category: 'Search Result',
-                thumbnail: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : `https://img.youtube.com/vi/${vId}/hqdefault.jpg`,
-                description: item.description || `Search result for "${query}"`
-              };
-            });
-            break;
-          }
+    const fetchPromises = endpoints.map(async (url) => {
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const rawList = Array.isArray(json) ? json : (json.items || []);
+      if (!Array.isArray(rawList) || rawList.length === 0) throw new Error('Empty');
+
+      return rawList.filter(item => item && (item.videoId || item.id || item.url)).map(item => {
+        let vId = item.videoId || item.id;
+        if (!vId && item.url) {
+          const match = item.url.match(/v=([a-zA-Z0-9_-]{11})/) || item.url.match(/\/watch\?v=([^&]+)/);
+          if (match) vId = match[1];
         }
-      } catch (err) {}
+        if (!vId) return null;
+
+        const formatSec = (sec) => {
+          if (!sec || isNaN(sec)) return '';
+          const m = Math.floor(sec / 60);
+          const s = Math.floor(sec % 60);
+          return `${m}:${s < 10 ? '0' : ''}${s}`;
+        };
+
+        return {
+          id: vId,
+          title: item.title || `Video (${vId})`,
+          channel: item.author || item.uploaderName || item.channel || 'YouTube Creator',
+          avatar: '📺',
+          views: item.viewCountText || (item.views ? `${(item.views / 1000000).toFixed(1)}M views` : (item.viewCount ? `${(item.viewCount / 1000000).toFixed(1)}M views` : 'Popular')),
+          published: item.publishedText || item.uploadedDate || 'Recent',
+          duration: item.duration ? (typeof item.duration === 'string' ? item.duration : formatSec(item.duration)) : (item.lengthSeconds ? formatSec(item.lengthSeconds) : 'Video'),
+          category: 'YouTube Search',
+          thumbnail: (item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : item.thumbnail) || `https://img.youtube.com/vi/${vId}/hqdefault.jpg`,
+          description: item.description || `Search result for "${query}"`
+        };
+      }).filter(Boolean);
+    });
+
+    try {
+      liveResults = await Promise.any(fetchPromises);
+    } catch (anyErr) {
+      // Live search instances were unreachable; gracefully proceed
     }
+
     clearTimeout(timeoutId);
   } catch (e) {}
 
@@ -397,7 +486,8 @@ async function searchYouTubeVideos(query) {
     }
   }
 
-  return combined.length > 0 ? combined : YOUTUBE_RECOMMENDATIONS.slice(0, 10);
+  // Return only true matches (never return random unrelated videos if 0 matches found)
+  return combined;
 }
 
 if (typeof window !== 'undefined') {

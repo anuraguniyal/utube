@@ -73,11 +73,26 @@ async function capture() {
     'about:blank'
   ]);
 
-  await new Promise(r => setTimeout(r, 1000));
+  let targets = null;
+  for (let retry = 0; retry < 15; retry++) {
+    try {
+      await new Promise(r => setTimeout(r, 250));
+      const listRes = await fetch('http://127.0.0.1:9245/json/list');
+      if (listRes.ok) {
+        targets = await listRes.json();
+        if (targets && targets.length > 0) break;
+      }
+    } catch (e) {}
+  }
+
+  if (!targets || targets.length === 0) {
+    console.error('Could not connect to Chromium CDP port 9245');
+    chromium.kill();
+    server.close();
+    return;
+  }
 
   try {
-    const listRes = await fetch('http://127.0.0.1:9245/json/list');
-    const targets = await listRes.json();
     const target = targets[0];
     const ws = new WebSocket(target.webSocketDebuggerUrl);
 

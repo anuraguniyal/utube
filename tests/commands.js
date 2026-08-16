@@ -6,10 +6,14 @@ module.exports = {
   outputPath: '/tmp/utube-screenshot.png',
   windowSize: { width: 1600, height: 950 },
   async run(cdp) {
-    // Search for 4k to show multiple search results cards in the player sidebar
+    // Wait for initial page hydration
+    await new Promise(r => setTimeout(r, 800));
+    // Search for python to verify real relevant programming videos are returned
     await cdp.evaluate(`
-      window.executeSearch('4k');
+      const inp = document.getElementById('urlInput');
+      inp.value = 'python';
+      document.getElementById('loadVideoBtn').click();
     `);
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 800));
   }
 };
