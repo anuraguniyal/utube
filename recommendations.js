@@ -388,17 +388,121 @@ const YOUTUBE_RECOMMENDATIONS = [
 ];
 
 /**
- * Multi-Engine YouTube Search Function
- * 1. Checks local multi-field keyword matching first
- * 2. Checks live Invidious / Piped API instances concurrently
- * 3. Returns only genuine matching results (never random unrelated videos)
+ * Robust Multi-Instance Public YouTube Live Search Engine
+ * - Queries multiple public Invidious & Piped instances concurrently with fastest-response resolution
+ * - Automatically falls back to CORS proxies if browser CORS blocks direct requests
+ * - In-memory and sessionStorage caching for instant (0ms) repeat queries
+ * - Full normalized schema output: [{ id, title, channel, avatar, views, published, duration, thumbnail, description, category }]
  */
+
+const searchCache = new Map();
+
+// Helper to format seconds into MM:SS or HH:MM:SS
+function formatDurationSec(sec) {
+  if (!sec || isNaN(sec)) return '';
+  const s = Math.floor(sec % 60);
+  const m = Math.floor((sec / 60) % 60);
+  const h = Math.floor(sec / 3600);
+  const pad = (n) => (n < 10 ? '0' : '') + n;
+  if (h > 0) return `${h}:${pad(m)}:${pad(s)}`;
+  return `${m}:${pad(s)}`;
+}
+
+// Helper to format view numbers into 1.2M / 450K
+function formatViewCount(views) {
+  if (!views) return 'Popular';
+  if (typeof views === 'string' && views.toLowerCase().includes('view')) return views;
+  const num = parseInt(views, 10);
+  if (isNaN(num)) return String(views);
+  if (num >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(1)}B views`;
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M views`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(0)}K views`;
+  return `${num} views`;
+}
+
+// Normalizer for Invidious/Piped items
+function normalizeSearchItem(item, query) {
+  if (!item) return null;
+  let id = item.videoId || item.id;
+  if (!id && item.url) {
+    const match = item.url.match(/v=([a-zA-Z0-9_-]{11})/) || item.url.match(/\/watch\?v=([^&]+)/) || item.url.match(/\/([a-zA-Z0-9_-]{11})$/);
+    if (match) id = match[1];
+  }
+  if (!id || typeof id !== 'string' || id.length < 5) return null;
+
+  const title = item.title || `YouTube Video (${id})`;
+  const channel = item.author || item.uploaderName || item.channel || item.uploader || 'YouTube Creator';
+  const views = formatViewCount(item.viewCountText || item.views || item.viewCount);
+  const published = item.publishedText || item.uploadedDate || item.published || 'Recent';
+  
+  let duration = 'Video';
+  if (typeof item.duration === 'string' && item.duration) {
+    duration = item.duration;
+  } else if (item.lengthSeconds) {
+    duration = formatDurationSec(item.lengthSeconds);
+  } else if (typeof item.duration === 'number') {
+    duration = formatDurationSec(item.duration);
+  }
+
+  let thumbnail = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  if (item.videoThumbnails && item.videoThumbnails[0] && item.videoThumbnails[0].url) {
+    thumbnail = item.videoThumbnails[0].url;
+  } else if (item.thumbnail) {
+    thumbnail = item.thumbnail;
+  }
+
+  return {
+    id,
+    title,
+    channel,
+    avatar: '📺',
+    views,
+    published,
+    duration,
+    category: 'YouTube Search',
+    thumbnail,
+    description: item.description || `Search result for "${query}"`
+  };
+}
+
+async function fetchFromInstance(endpoint, query, signal) {
+  const res = await fetch(endpoint, { signal });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  const rawList = Array.isArray(json) ? json : (json.items || json.results || []);
+  if (!Array.isArray(rawList) || rawList.length === 0) throw new Error('Empty results');
+
+  const normalized = rawList
+    .map(item => normalizeSearchItem(item, query))
+    .filter(Boolean);
+
+  if (normalized.length === 0) throw new Error('No valid items');
+  return normalized;
+}
+
 async function searchYouTubeVideos(query) {
   if (!query || typeof query !== 'string') return [];
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
-  // Local fuzzy / keyword match
+  // Check in-memory cache
+  if (searchCache.has(q)) {
+    return searchCache.get(q);
+  }
+
+  // Check sessionStorage cache
+  try {
+    const cached = sessionStorage.getItem(`utube_search_${q}`);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        searchCache.set(q, parsed);
+        return parsed;
+      }
+    }
+  } catch (e) {}
+
+  // Local fuzzy / curated matches
   const tokens = q.split(/\s+/).filter(t => t.length > 1);
   const localMatches = YOUTUBE_RECOMMENDATIONS.filter(video => {
     const text = `${video.title} ${video.channel} ${video.description} ${video.category}`.toLowerCase();
@@ -412,81 +516,67 @@ async function searchYouTubeVideos(query) {
     return bScore - aScore;
   });
 
-  // Return immediate local matches if available (0ms instant response)
+  // If local matches exist, return immediately for instant 0ms rendering
   if (localMatches.length > 0) {
+    searchCache.set(q, localMatches);
     return localMatches;
   }
 
-  // Attempt live Invidious / Piped search concurrently with 1.5s timeout
+  // Prepare multi-instance live search endpoints for non-catalog queries
+  const encodedQ = encodeURIComponent(q);
+  const directEndpoints = [
+    `https://invidious.jing.rocks/api/v1/search?q=${encodedQ}&type=video`,
+    `https://inv.nadeko.net/api/v1/search?q=${encodedQ}&type=video`,
+    `https://yt.artemislena.eu/api/v1/search?q=${encodedQ}&type=video`,
+    `https://invidious.privacyredirect.com/api/v1/search?q=${encodedQ}&type=video`,
+    `https://pipedapi.kavin.rocks/search?q=${encodedQ}&filter=videos`,
+    `https://api.piped.privacydev.net/search?q=${encodedQ}&filter=videos`
+  ];
+
+  // CORS proxy wrapped endpoints
+  const proxyEndpoints = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://invidious.jing.rocks/api/v1/search?q=${encodedQ}&type=video`)}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(`https://inv.nadeko.net/api/v1/search?q=${encodedQ}&type=video`)}`
+  ];
+
+  const allEndpoints = [...directEndpoints, ...proxyEndpoints];
+
   let liveResults = [];
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1500);
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
 
-    const endpoints = [
-      `https://inv.nadeko.net/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
-      `https://invidious.jing.rocks/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
-      `https://yt.artemislena.eu/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
-      `https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(q)}&filter=videos`
-    ];
-
-    const fetchPromises = endpoints.map(async (url) => {
-      const res = await fetch(url, { signal: controller.signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const rawList = Array.isArray(json) ? json : (json.items || []);
-      if (!Array.isArray(rawList) || rawList.length === 0) throw new Error('Empty');
-
-      return rawList.filter(item => item && (item.videoId || item.id || item.url)).map(item => {
-        let vId = item.videoId || item.id;
-        if (!vId && item.url) {
-          const match = item.url.match(/v=([a-zA-Z0-9_-]{11})/) || item.url.match(/\/watch\?v=([^&]+)/);
-          if (match) vId = match[1];
-        }
-        if (!vId) return null;
-
-        const formatSec = (sec) => {
-          if (!sec || isNaN(sec)) return '';
-          const m = Math.floor(sec / 60);
-          const s = Math.floor(sec % 60);
-          return `${m}:${s < 10 ? '0' : ''}${s}`;
-        };
-
-        return {
-          id: vId,
-          title: item.title || `Video (${vId})`,
-          channel: item.author || item.uploaderName || item.channel || 'YouTube Creator',
-          avatar: '📺',
-          views: item.viewCountText || (item.views ? `${(item.views / 1000000).toFixed(1)}M views` : (item.viewCount ? `${(item.viewCount / 1000000).toFixed(1)}M views` : 'Popular')),
-          published: item.publishedText || item.uploadedDate || 'Recent',
-          duration: item.duration ? (typeof item.duration === 'string' ? item.duration : formatSec(item.duration)) : (item.lengthSeconds ? formatSec(item.lengthSeconds) : 'Video'),
-          category: 'YouTube Search',
-          thumbnail: (item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : item.thumbnail) || `https://img.youtube.com/vi/${vId}/hqdefault.jpg`,
-          description: item.description || `Search result for "${query}"`
-        };
-      }).filter(Boolean);
-    });
-
-    try {
-      liveResults = await Promise.any(fetchPromises);
-    } catch (anyErr) {
-      // Live search instances were unreachable; gracefully proceed
-    }
-
+    const promises = allEndpoints.map(url => fetchFromInstance(url, q, controller.signal));
+    liveResults = await Promise.any(promises);
     clearTimeout(timeoutId);
-  } catch (e) {}
+  } catch (err) {
+    // If live search instances are unreachable / offline, fall back cleanly
+  }
 
+  // Combine and deduplicate by videoId
   const seenIds = new Set();
   const combined = [];
 
-  for (const item of [...localMatches, ...liveResults]) {
-    if (!seenIds.has(item.id)) {
+  // Prioritize live results if found, augmented with local matches
+  const sourceList = (liveResults && liveResults.length > 0)
+    ? [...liveResults, ...localMatches]
+    : localMatches;
+
+  for (const item of sourceList) {
+    if (item && item.id && !seenIds.has(item.id)) {
       seenIds.add(item.id);
       combined.push(item);
     }
   }
 
-  // Return only true matches (never return random unrelated videos if 0 matches found)
+  // Cache results if non-empty
+  if (combined.length > 0) {
+    searchCache.set(q, combined);
+    try {
+      sessionStorage.setItem(`utube_search_${q}`, JSON.stringify(combined.slice(0, 20)));
+    } catch (e) {}
+  }
+
   return combined;
 }
 

@@ -8,10 +8,10 @@ module.exports = {
   async run(cdp) {
     // Wait for initial page hydration
     await new Promise(r => setTimeout(r, 800));
-    // Search for python to verify real relevant programming videos are returned
+    // Search for chess
     await cdp.evaluate(`
       const inp = document.getElementById('urlInput');
-      inp.value = 'python';
+      inp.value = 'chess';
       document.getElementById('loadVideoBtn').click();
     `);
     await new Promise(r => setTimeout(r, 800));
