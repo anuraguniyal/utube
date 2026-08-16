@@ -88,8 +88,7 @@ class PlayerController {
           hl: 'en',
           start: this.initialStartSeconds > 0 ? this.initialStartSeconds : 0,
           modestbranding: 1,
-          rel: 0,
-          origin: window.location.origin
+          rel: 0
         },
         events: {
           onReady: (event) => {
@@ -651,14 +650,29 @@ class PlayerController {
   // --- Bookmarks ---
 
   addBookmark(label = '') {
-    const time = this.getCurrentTime();
+    let time = 0;
+    try {
+      if (this.player && typeof this.player.getCurrentTime === 'function') {
+        time = this.player.getCurrentTime();
+      }
+    } catch (e) {}
+
+    if (typeof time !== 'number' || isNaN(time) || time < 0) {
+      time = this.state.currentTime || this.virtualTime || 0;
+    }
+
+    const vId = this.videoId || 'LXb3EKWsInQ';
     const bookmark = {
-      id: Date.now().toString(),
-      videoId: this.videoId,
-      time: Math.round(time * 10) / 10,
+      id: `${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      videoId: vId,
+      time: Math.max(0, Math.round(time * 10) / 10),
       label: label || `Marker @ ${this.formatTime(time)}`,
       createdAt: new Date().toISOString()
     };
+
+    if (!Array.isArray(this.state.bookmarks)) {
+      this.state.bookmarks = [];
+    }
 
     this.state.bookmarks.push(bookmark);
     this.saveBookmarksToStorage();
@@ -667,26 +681,38 @@ class PlayerController {
   }
 
   removeBookmark(id) {
-    this.state.bookmarks = this.state.bookmarks.filter(b => b.id !== id);
+    if (!Array.isArray(this.state.bookmarks)) this.state.bookmarks = [];
+    this.state.bookmarks = this.state.bookmarks.filter(b => b && b.id !== id);
     this.saveBookmarksToStorage();
     this.notifyState();
   }
 
   saveBookmarksToStorage() {
     try {
-      localStorage.setItem('utube_bookmarks', JSON.stringify(this.state.bookmarks));
-    } catch (e) {}
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('utube_bookmarks', JSON.stringify(this.state.bookmarks || []));
+      }
+    } catch (e) {
+      console.warn('Bookmarks save error:', e);
+    }
   }
 
   loadBookmarksFromStorage() {
     try {
-      const data = localStorage.getItem('utube_bookmarks');
-      if (data) {
-        this.state.bookmarks = JSON.parse(data);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const data = localStorage.getItem('utube_bookmarks');
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed)) {
+            this.state.bookmarks = parsed;
+            return;
+          }
+        }
       }
     } catch (e) {
-      this.state.bookmarks = [];
+      console.warn('Bookmarks load error:', e);
     }
+    this.state.bookmarks = [];
   }
 
   // --- Last Video & Session Persistence ---

@@ -581,12 +581,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // 12. Bookmarks & Markers
   const copyCurrentTimeBtn = document.getElementById('copyCurrentTimeBtn');
   const copyCurrentTimeIcon = document.getElementById('copyCurrentTimeIcon');
+  const addBookmarkCardBtn = document.getElementById('addBookmarkCardBtn');
 
-  addBookmarkBtn.addEventListener('click', () => {
-    const bm = player.addBookmark();
-    renderBookmarks();
-    gestureEngine.showMomentaryFeedback(`Timestamp marked @ ${player.formatTime(bm.time)}`, 'info');
-  });
+  function handleAddBookmark() {
+    try {
+      const bm = player.addBookmark();
+      renderBookmarks();
+      gestureEngine.showMomentaryFeedback(`⭐ Marked @ ${player.formatTime(bm.time)}`, 'info');
+    } catch (e) {
+      console.warn('Bookmark add error:', e);
+    }
+  }
+
+  if (addBookmarkBtn) addBookmarkBtn.addEventListener('click', handleAddBookmark);
+  if (addBookmarkCardBtn) addBookmarkCardBtn.addEventListener('click', handleAddBookmark);
 
   if (copyCurrentTimeBtn) {
     copyCurrentTimeBtn.addEventListener('click', async () => {

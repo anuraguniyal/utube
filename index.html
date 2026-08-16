@@ -59,7 +59,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v1.5</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v1.6</div>
     </div>
   </header>
 
@@ -351,10 +351,15 @@
           <h3 class="card-title">
             <span>📌 Saved Markers</span>
           </h3>
-          <button id="copyCurrentTimeBtn" class="btn-ghost" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: var(--radius-full);" title="Copy YouTube link with current timestamp">
-            <span id="copyCurrentTimeIcon">🔗</span>
-            <span>Copy Time URL</span>
-          </button>
+          <div style="display: flex; align-items: center; gap: 0.35rem;">
+            <button id="addBookmarkCardBtn" class="btn-primary" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: var(--radius-full);" title="Mark current video timestamp">
+              <span>⭐ Mark Time</span>
+            </button>
+            <button id="copyCurrentTimeBtn" class="btn-ghost" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: var(--radius-full);" title="Copy YouTube link with current timestamp">
+              <span id="copyCurrentTimeIcon">🔗</span>
+              <span>Copy Time URL</span>
+            </button>
+          </div>
         </div>
 
         <div id="bookmarksList" class="bookmarks-list">
