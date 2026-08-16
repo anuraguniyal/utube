@@ -605,9 +605,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function resolveVideoTitleSync(videoId, fallbackTitle = '') {
+    if (fallbackTitle && !fallbackTitle.startsWith('Video:') && !fallbackTitle.startsWith('YouTube Video (')) {
+      return fallbackTitle;
+    }
+    if (videoMetadataCache.has(videoId)) {
+      return videoMetadataCache.get(videoId).title;
+    }
+    const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
+    const local = dataset ? dataset.find(v => v.id === videoId) : null;
+    if (local && local.title) return local.title;
+
+    if (player.videoId === videoId) {
+      const curEl = document.getElementById('currentVideoTitle');
+      if (curEl && curEl.textContent && !curEl.textContent.startsWith('Loading')) {
+        return curEl.textContent;
+      }
+      if (player.state.title) return player.state.title;
+    }
+
+    // Trigger async fetch in background to backfill title
+    fetchVideoMetadata(videoId).then(meta => {
+      if (meta && meta.title && meta.title !== fallbackTitle) {
+        // Update stored bookmarks
+        player.state.bookmarks.forEach(b => {
+          if (b.videoId === videoId) b.videoTitle = meta.title;
+        });
+        player.saveBookmarksToStorage();
+        renderBookmarks();
+      }
+    });
+
+    return fallbackTitle || `Video (${videoId})`;
+  }
+
   function handleAddBookmark() {
     try {
-      const currentTitle = document.getElementById('currentVideoTitle')?.textContent || player.state.title || `Video: ${player.videoId}`;
+      const currentTitle = resolveVideoTitleSync(player.videoId);
       const bm = player.addBookmark('', currentTitle);
       renderBookmarks();
       gestureEngine.showMomentaryFeedback(`⭐ Marked @ ${player.formatTime(bm.time)}`, 'info');
@@ -655,38 +689,93 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    bookmarksList.innerHTML = displayList.map(bm => {
-      const isCurrent = bm.videoId === player.videoId;
-      const title = bm.videoTitle || `Video: ${bm.videoId}`;
-      const url = bm.videoUrl || `https://youtu.be/${bm.videoId}?t=${Math.floor(bm.time)}`;
+    // Group bookmarks by videoId
+    const groupsMap = new Map();
 
-      return `
-        <div class="bookmark-item ${isCurrent ? 'is-current-video' : ''}">
-          <div class="bookmark-left" data-time="${bm.time}" data-vid="${bm.videoId}" title="Click to open & jump to ${player.formatTime(bm.time)}">
-            <div class="bm-video-title">
-              <span>📺</span>
-              <span>${title}</span>
-              ${isCurrent ? '<span style="font-size: 0.65rem; background: rgba(59, 130, 246, 0.25); color: #93c5fd; padding: 1px 5px; border-radius: 3px; margin-left: 4px;">Active</span>' : ''}
-            </div>
-            <div class="bm-time-row">
-              <span class="bookmark-time-tag">${player.formatTime(bm.time)}</span>
-              <span class="bookmark-label">${bm.label || `Timestamp @ ${player.formatTime(bm.time)}`}</span>
+    // Ensure current video is first if present
+    if (currentVideoBookmarks.length > 0) {
+      groupsMap.set(player.videoId, {
+        videoId: player.videoId,
+        isCurrent: true,
+        title: resolveVideoTitleSync(player.videoId),
+        items: []
+      });
+    }
+
+    displayList.forEach(bm => {
+      if (!groupsMap.has(bm.videoId)) {
+        groupsMap.set(bm.videoId, {
+          videoId: bm.videoId,
+          isCurrent: bm.videoId === player.videoId,
+          title: resolveVideoTitleSync(bm.videoId, bm.videoTitle),
+          items: []
+        });
+      }
+      groupsMap.get(bm.videoId).items.push(bm);
+    });
+
+    let html = '';
+    groupsMap.forEach(group => {
+      if (group.items.length === 0) return;
+
+      const isCurrent = group.isCurrent;
+      const groupHeader = isCurrent
+        ? `
+          <div class="bm-group-header">
+            <div class="bm-group-title" title="${group.title}">
+              <span>▶</span>
+              <span class="bm-group-name">Current Video</span>
+              <span class="bm-count-pill">${group.items.length}</span>
             </div>
           </div>
-          <div class="bookmark-actions">
-            <button class="btn-icon copy-marker-btn" data-url="${url}" title="Copy YouTube Timestamp Link: ${url}">
-              <span class="marker-copy-icon">🔗</span>
+        `
+        : `
+          <div class="bm-group-header">
+            <div class="bm-group-title" title="${group.title}">
+              <span>📺</span>
+              <span class="bm-group-name">${group.title}</span>
+              <span class="bm-count-pill">${group.items.length}</span>
+            </div>
+            <button class="btn-ghost bm-play-video-btn" data-vid="${group.videoId}" style="padding: 2px 8px; font-size: 0.68rem; border-radius: var(--radius-full);" title="Load video: ${group.title}">
+              ▶ Play
             </button>
-            <button class="btn-icon delete-marker-btn" data-id="${bm.id}" title="Remove Marker" style="color: #f87171;">
-              ✕
-            </button>
+          </div>
+        `;
+
+      const rows = group.items.map(bm => {
+        const url = bm.videoUrl || `https://youtu.be/${bm.videoId}?t=${Math.floor(bm.time)}`;
+        return `
+          <div class="bookmark-row">
+            <div class="bm-row-left" data-time="${bm.time}" data-vid="${bm.videoId}" title="Jump to ${player.formatTime(bm.time)}">
+              <span class="bookmark-time-tag">${player.formatTime(bm.time)}</span>
+              <span class="bookmark-label" title="${bm.label || `Timestamp @ ${player.formatTime(bm.time)}`}">${bm.label || `Timestamp @ ${player.formatTime(bm.time)}`}</span>
+            </div>
+            <div class="bm-row-actions">
+              <button class="btn-icon copy-marker-btn" data-url="${url}" title="Copy Link: ${url}">
+                <span class="marker-copy-icon">🔗</span>
+              </button>
+              <button class="btn-icon delete-marker-btn" data-id="${bm.id}" title="Remove Marker" style="color: #f87171;">
+                ✕
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      html += `
+        <div class="bm-group-container ${isCurrent ? 'is-current' : ''}">
+          ${groupHeader}
+          <div class="bm-group-items">
+            ${rows}
           </div>
         </div>
       `;
-    }).join('');
+    });
 
-    // Jump to marker (same or different video)
-    bookmarksList.querySelectorAll('.bookmark-left').forEach(el => {
+    bookmarksList.innerHTML = html;
+
+    // Jump to marker row
+    bookmarksList.querySelectorAll('.bm-row-left').forEach(el => {
       el.addEventListener('click', () => {
         const time = parseFloat(el.getAttribute('data-time'));
         const targetVid = el.getAttribute('data-vid');
@@ -698,9 +787,18 @@ document.addEventListener('DOMContentLoaded', () => {
           loadNewVideo(targetVid);
           setTimeout(() => {
             player.seekTo(time, true);
-            gestureEngine.showMomentaryFeedback(`📺 Switched video & jumped to ${player.formatTime(time)}`, 'info');
+            gestureEngine.showMomentaryFeedback(`📺 Loaded video & jumped to ${player.formatTime(time)}`, 'info');
           }, 350);
         }
+      });
+    });
+
+    // Play entire video group
+    bookmarksList.querySelectorAll('.bm-play-video-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const targetVid = btn.getAttribute('data-vid');
+        loadNewVideo(targetVid);
       });
     });
 
