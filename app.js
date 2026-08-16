@@ -225,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       updateVideoMetadata(res.videoId);
       renderBookmarks();
+      updateLiveChat(res.videoId);
 
       if (startTime > 0) {
         setTimeout(() => {
@@ -888,7 +889,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderBookmarks();
 
-  // 13. Player State Observer / UI Sync
+  // 13. Sidebar Tabs & Live / Stream Chat Controller
+  const tabBtnMarkers = document.getElementById('tabBtnMarkers');
+  const tabBtnLiveChat = document.getElementById('tabBtnLiveChat');
+  const sidebarPanelMarkers = document.getElementById('sidebarPanelMarkers');
+  const sidebarPanelLiveChat = document.getElementById('sidebarPanelLiveChat');
+  const liveChatIframe = document.getElementById('liveChatIframe');
+  const popoutChatBtn = document.getElementById('popoutChatBtn');
+  const refreshChatBtn = document.getElementById('refreshChatBtn');
+
+  function getLiveChatEmbedUrl(videoId) {
+    const vid = videoId || player.videoId || 'LXb3EKWsInQ';
+    const domain = window.location.hostname || 'localhost';
+    return `https://www.youtube.com/live_chat?v=${encodeURIComponent(vid)}&embed_domain=${encodeURIComponent(domain)}`;
+  }
+
+  function updateLiveChat(videoId) {
+    if (!liveChatIframe) return;
+    const url = getLiveChatEmbedUrl(videoId);
+    if (liveChatIframe.getAttribute('data-loaded-vid') !== videoId) {
+      liveChatIframe.src = url;
+      liveChatIframe.setAttribute('data-loaded-vid', videoId);
+    }
+  }
+
+  function switchSidebarTab(tabName) {
+    if (tabName === 'markers') {
+      if (tabBtnMarkers) tabBtnMarkers.classList.add('active');
+      if (tabBtnLiveChat) tabBtnLiveChat.classList.remove('active');
+      if (sidebarPanelMarkers) sidebarPanelMarkers.style.display = 'block';
+      if (sidebarPanelLiveChat) sidebarPanelLiveChat.style.display = 'none';
+    } else if (tabName === 'chat') {
+      if (tabBtnLiveChat) tabBtnLiveChat.classList.add('active');
+      if (tabBtnMarkers) tabBtnMarkers.classList.remove('active');
+      if (sidebarPanelLiveChat) sidebarPanelLiveChat.style.display = 'block';
+      if (sidebarPanelMarkers) sidebarPanelMarkers.style.display = 'none';
+      updateLiveChat(player.videoId);
+    }
+  }
+
+  if (tabBtnMarkers) tabBtnMarkers.addEventListener('click', () => switchSidebarTab('markers'));
+  if (tabBtnLiveChat) tabBtnLiveChat.addEventListener('click', () => switchSidebarTab('chat'));
+
+  if (popoutChatBtn) {
+    popoutChatBtn.addEventListener('click', () => {
+      const url = getLiveChatEmbedUrl(player.videoId);
+      window.open(url, 'YouTubeLiveChat', 'width=420,height=650,resizable=yes,scrollbars=yes,menubar=no,toolbar=no');
+      gestureEngine.showMomentaryFeedback('💬 Popped Out Live Chat Window', 'info');
+    });
+  }
+
+  if (refreshChatBtn) {
+    refreshChatBtn.addEventListener('click', () => {
+      if (liveChatIframe) {
+        liveChatIframe.src = getLiveChatEmbedUrl(player.videoId);
+        gestureEngine.showMomentaryFeedback('⟳ Refreshed Chat', 'info');
+      }
+    });
+  }
+
+  // 14. Player State Observer / UI Sync
   player.subscribe((state) => {
     if (playBtnIcon) {
       playBtnIcon.innerHTML = state.isPlaying

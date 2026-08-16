@@ -73,8 +73,10 @@ Touch or click-and-drag directly on the video viewport for continuous gesture na
 - **1-Click Video Switch & Jump**: Clicking a bookmark from another video automatically loads that video and seeks directly to the saved timestamp.
 - **Filter Tabs**: Toggle between `All Videos` and `This Video` to quickly find your saved moments.
 - **Yellow Dots on Timeline**: Saved bookmarks for the active video are displayed as bright yellow glowing dots along the scrubber timeline.
-- **Copy Timestamp Link (`🔗`)**: Dedicated button on each marker to copy the full YouTube timestamp URL.
-- **Persistent Storage**: All multi-video bookmarks are saved to browser `localStorage`.
+### 8. 💬 Live Stream Chat & Chat Replay
+- **Embedded Stream Chat**: Integrated tab on the right sidebar to watch live stream chats or replay chats from previous broadcasts in real-time.
+- **⤢ Detached Pop-Out Window**: 1-click button to open a dedicated floating chat popup.
+- **Automatic Sync**: Updates automatically whenever a new video or live stream is loaded.
 
 ---
 

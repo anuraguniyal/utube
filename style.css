@@ -1723,6 +1723,79 @@ input:checked + .toggle-slider:before {
   border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
+/* Sidebar Tab Switcher (Markers vs Live Chat) */
+.sidebar-tab-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.sidebar-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.775rem;
+  font-weight: 700;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.sidebar-tab-btn:hover {
+  color: #fff;
+}
+
+.sidebar-tab-btn.active {
+  background: var(--accent-blue);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+}
+
+.sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* Live / Replay Chat Container */
+.live-chat-container {
+  width: 100%;
+  height: 380px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+.live-chat-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.chat-helper-tip {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+  padding: 0 2px;
+}
+
 .card-header-actions {
   display: flex;
   align-items: center;
