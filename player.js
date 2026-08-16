@@ -148,8 +148,29 @@ class PlayerController {
         this.state.isPlaying = false;
       }
     }
+
+    // Capture real YouTube video title and author
+    try {
+      if (this.player && this.player.getVideoData) {
+        const vData = this.player.getVideoData();
+        if (vData && vData.title) {
+          this.state.title = vData.title;
+          this.state.author = vData.author;
+        }
+      }
+    } catch (e) {}
+
     this.saveLastVideoState();
     this.notifyState();
+  }
+
+  getVideoData() {
+    if (this.isReady && this.player && this.player.getVideoData) {
+      try {
+        return this.player.getVideoData();
+      } catch (e) {}
+    }
+    return null;
   }
 
   startPolling() {

@@ -139,18 +139,90 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Video Title & Metadata Cache
+  const videoMetadataCache = new Map();
+
+  async function fetchVideoMetadata(videoId) {
+    if (!videoId) return null;
+    if (videoMetadataCache.has(videoId)) {
+      return videoMetadataCache.get(videoId);
+    }
+
+    // 1. Check local recommended dataset
+    const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
+    const localMatch = dataset ? dataset.find(v => v.id === videoId) : null;
+    if (localMatch) {
+      const meta = { title: localMatch.title, description: localMatch.description, author: localMatch.channel };
+      videoMetadataCache.set(videoId, meta);
+      return meta;
+    }
+
+    // 2. Check YouTube Player API video data
+    const ytData = player.getVideoData();
+    if (ytData && ytData.title && ytData.video_id === videoId) {
+      const meta = {
+        title: ytData.title,
+        description: ytData.author ? `Uploaded by ${ytData.author}` : 'Enhanced gesture-controlled playback mode.',
+        author: ytData.author || ''
+      };
+      videoMetadataCache.set(videoId, meta);
+      return meta;
+    }
+
+    // 3. Fetch from official YouTube oEmbed endpoint
+    try {
+      const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+      if (resp.ok) {
+        const json = await resp.json();
+        if (json && json.title) {
+          const meta = {
+            title: json.title,
+            description: json.author_name ? `Uploaded by ${json.author_name} • YouTube` : 'Enhanced gesture-controlled playback mode.',
+            author: json.author_name || ''
+          };
+          videoMetadataCache.set(videoId, meta);
+          return meta;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch oEmbed title:', e);
+    }
+
+    return { title: `YouTube Video: ${videoId}`, description: 'Enhanced gesture-controlled playback mode.', author: '' };
+  }
+
+  async function updateVideoMetadata(customVideoId = null) {
+    const vidId = customVideoId || player.videoId;
+    const titleEl = document.getElementById('currentVideoTitle');
+    const descEl = document.getElementById('currentVideoDesc');
+
+    // Quick initial render
+    const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
+    const local = dataset ? dataset.find(v => v.id === vidId) : null;
+    if (local) {
+      if (titleEl) titleEl.textContent = local.title;
+      if (descEl) descEl.textContent = local.description;
+      return;
+    }
+
+    if (titleEl) titleEl.textContent = 'Loading video title...';
+
+    // Fetch official real YouTube title
+    const meta = await fetchVideoMetadata(vidId);
+    if (meta && vidId === player.videoId) {
+      if (titleEl) titleEl.textContent = meta.title;
+      if (descEl) descEl.textContent = meta.description;
+    }
+  }
+
   function loadNewVideo(query) {
     const res = player.loadVideo(query);
     if (res.success) {
       updateActiveCard(res.videoId);
       if (urlInput) urlInput.value = `https://youtu.be/${res.videoId}`;
       
-      const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
-      const curr = dataset ? dataset.find(v => v.id === res.videoId) : null;
-      const title = curr ? curr.title : `Video: ${res.videoId}`;
-      
-      gestureEngine.showMomentaryFeedback(`▶ Now Playing: ${title}`, 'info');
-      updateVideoMetadata();
+      gestureEngine.showMomentaryFeedback('Loaded Video', 'info');
+      updateVideoMetadata(res.videoId);
       renderBookmarks();
 
       // Scroll smoothly up to the player if user was browsing recommendations below
@@ -162,21 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function updateVideoMetadata() {
-    const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
-    const curr = dataset ? dataset.find(v => v.id === player.videoId) : null;
-    const titleEl = document.getElementById('currentVideoTitle');
-    const descEl = document.getElementById('currentVideoDesc');
-    if (titleEl) {
-      titleEl.textContent = curr ? curr.title : `YouTube Video: ${player.videoId}`;
-    }
-    if (descEl) {
-      descEl.textContent = curr ? curr.description : 'Enhanced gesture-controlled playback mode.';
-    }
-  }
-
   // Restore initial video metadata and URL bar on page load
-  updateVideoMetadata();
+  updateVideoMetadata(player.videoId);
   if (urlInput && player.videoId) {
     urlInput.value = `https://youtu.be/${player.videoId}`;
   }
@@ -654,6 +713,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (captionLanguageSelect && state.captions && document.activeElement !== captionLanguageSelect) {
       captionLanguageSelect.value = state.captions.language || 'en';
+    }
+
+    if (state.title) {
+      const titleEl = document.getElementById('currentVideoTitle');
+      if (titleEl && (titleEl.textContent.startsWith('Loading') || titleEl.textContent.startsWith('YouTube Video'))) {
+        titleEl.textContent = state.title;
+      }
     }
   });
 
