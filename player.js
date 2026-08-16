@@ -34,6 +34,11 @@ class PlayerController {
       volume: 100,
       isMuted: false,
       isReversePlaying: false,
+      captions: {
+        enabled: true,
+        language: 'en',
+        fontSize: 1
+      },
       bookmarks: []
     };
 
@@ -73,6 +78,9 @@ class PlayerController {
           enablejsapi: 1,
           fs: 0,
           iv_load_policy: 3,
+          cc_load_policy: 1,
+          cc_lang_pref: 'en',
+          hl: 'en',
           modestbranding: 1,
           rel: 0,
           origin: window.location.origin
@@ -89,6 +97,7 @@ class PlayerController {
               try { this.player.playVideo(); } catch (e) {}
             }
 
+            this.initCaptions();
             this.startPolling();
             if (this.onReadyCallback) this.onReadyCallback();
             this.notifyState();
@@ -438,6 +447,63 @@ class PlayerController {
       this.restoreNormalPlayback();
     } else {
       this.applyReverse(speedMultiplier);
+    }
+  }
+
+  // --- Captions & Subtitles Engine ---
+
+  initCaptions() {
+    try {
+      if (this.player && this.player.loadModule) {
+        this.player.loadModule('captions');
+      }
+      this.applyCaptionSettings();
+    } catch (e) {}
+  }
+
+  toggleCaptions() {
+    this.state.captions.enabled = !this.state.captions.enabled;
+    this.applyCaptionSettings();
+    this.notifyState();
+    return this.state.captions.enabled;
+  }
+
+  setCaptionLanguage(langCode) {
+    this.state.captions.language = langCode;
+    this.state.captions.enabled = true;
+    this.applyCaptionSettings();
+    this.notifyState();
+  }
+
+  setCaptionFontSize(size) {
+    this.state.captions.fontSize = parseInt(size, 10);
+    this.applyCaptionSettings();
+    this.notifyState();
+  }
+
+  applyCaptionSettings() {
+    if (!this.isReady || !this.player) return;
+    try {
+      if (this.state.captions.enabled) {
+        if (this.player.loadModule) this.player.loadModule('captions');
+        if (this.player.setOption) {
+          if (this.state.captions.language && this.state.captions.language !== 'auto') {
+            this.player.setOption('captions', 'track', { languageCode: this.state.captions.language });
+          } else {
+            this.player.setOption('captions', 'track', {});
+          }
+          this.player.setOption('captions', 'fontSize', this.state.captions.fontSize);
+        }
+      } else {
+        if (this.player.setOption) {
+          this.player.setOption('captions', 'track', {});
+        }
+        if (this.player.unloadModule) {
+          this.player.unloadModule('captions');
+        }
+      }
+    } catch (e) {
+      console.warn('Caption settings exception:', e);
     }
   }
 

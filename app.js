@@ -48,6 +48,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const volumeSlider = document.getElementById('volumeSlider');
   const fullscreenBtn = document.getElementById('fullscreenBtn');
 
+  // Captions Elements
+  const captionsBtn = document.getElementById('captionsBtn');
+  const captionsMenuBtn = document.getElementById('captionsMenuBtn');
+  const captionsFlyout = document.getElementById('captionsFlyout');
+  const closeCaptionsFlyout = document.getElementById('closeCaptionsFlyout');
+  const captionsToggleSwitch = document.getElementById('captionsToggleSwitch');
+  const captionLanguageSelect = document.getElementById('captionLanguageSelect');
+  const captionSizeGroup = document.getElementById('captionSizeGroup');
+
   const addBookmarkBtn = document.getElementById('addBookmarkBtn');
   const bookmarksList = document.getElementById('bookmarksList');
 
@@ -437,7 +446,62 @@ document.addEventListener('DOMContentLoaded', () => {
     player.setVolume(val);
   });
 
-  // 11. Fullscreen
+  // 11. Captions & Options
+  if (captionsBtn) {
+    captionsBtn.addEventListener('click', () => {
+      const enabled = player.toggleCaptions();
+      gestureEngine.showMomentaryFeedback(enabled ? '💬 Captions ON' : 'Captions OFF', 'info');
+    });
+  }
+
+  if (captionsMenuBtn && captionsFlyout) {
+    captionsMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      captionsFlyout.classList.toggle('active');
+    });
+
+    if (closeCaptionsFlyout) {
+      closeCaptionsFlyout.addEventListener('click', (e) => {
+        e.stopPropagation();
+        captionsFlyout.classList.remove('active');
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!captionsFlyout.contains(e.target) && e.target !== captionsMenuBtn && !captionsMenuBtn.contains(e.target)) {
+        captionsFlyout.classList.remove('active');
+      }
+    });
+  }
+
+  if (captionsToggleSwitch) {
+    captionsToggleSwitch.addEventListener('change', (e) => {
+      if (e.target.checked !== player.state.captions.enabled) {
+        player.toggleCaptions();
+      }
+    });
+  }
+
+  if (captionLanguageSelect) {
+    captionLanguageSelect.addEventListener('change', (e) => {
+      player.setCaptionLanguage(e.target.value);
+      gestureEngine.showMomentaryFeedback(`Language: ${captionLanguageSelect.options[captionLanguageSelect.selectedIndex].text}`, 'info');
+    });
+  }
+
+  if (captionSizeGroup) {
+    captionSizeGroup.querySelectorAll('.toggle-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        captionSizeGroup.querySelectorAll('.toggle-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const size = pill.getAttribute('data-size');
+        player.setCaptionFontSize(size);
+        gestureEngine.showMomentaryFeedback(`Caption Size: ${pill.textContent}`, 'info');
+      });
+    });
+  }
+
+  // 12. Fullscreen
   fullscreenBtn.addEventListener('click', () => {
     const theater = document.querySelector('.player-theater-wrapper');
     if (!document.fullscreenElement) {
@@ -574,6 +638,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (volumeSlider && document.activeElement !== volumeSlider) {
       volumeSlider.value = state.isMuted ? 0 : state.volume;
     }
+
+    if (captionsBtn && state.captions) {
+      captionsBtn.classList.toggle('active', state.captions.enabled);
+    }
+    if (captionsToggleSwitch && state.captions) {
+      captionsToggleSwitch.checked = state.captions.enabled;
+    }
+    if (captionLanguageSelect && state.captions && document.activeElement !== captionLanguageSelect) {
+      captionLanguageSelect.value = state.captions.language || 'en';
+    }
   });
 
   // 15. Help Modal
@@ -593,12 +667,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 16. Global Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
-    if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
 
     switch (e.key.toLowerCase()) {
       case ' ':
         e.preventDefault();
         player.togglePlay();
+        break;
+      case 'c':
+        e.preventDefault();
+        const enabled = player.toggleCaptions();
+        gestureEngine.showMomentaryFeedback(enabled ? '💬 Captions ON' : 'Captions OFF', 'info');
         break;
       case 'j':
         e.preventDefault();

@@ -61,7 +61,14 @@ Touch or click-and-drag directly on the video viewport for continuous gesture na
 
 ---
 
-### 6. 📌 Saved Timestamp Markers with 1-Click Copy URL
+### 6. 💬 Closed Captions (CC) & Subtitle Options
+- **Default On**: Captions are automatically loaded and enabled by default (`cc_load_policy: 1`).
+- **1-Click CC Toggle (`C`)**: Instant subtitle toggle with active state indicator.
+- **Captions Options Menu (⚙️)**:
+  - **Language Selector**: Choose between English, Spanish, French, German, Japanese, Chinese, or Auto-Generated tracks.
+  - **Font Size Customization**: Small, Normal, Large, and XL font sizing.
+
+### 7. 📌 Saved Timestamp Markers with 1-Click Copy URL
 - **Timestamp Bookmarks**: Mark important video timestamps with persistent browser LocalStorage support.
 - **Copy Timestamp Link (`🔗`)**: Dedicated button on each marker to copy shareable YouTube timestamp URLs (e.g. `https://youtu.be/LXb3EKWsInQ?t=125`) directly to clipboard.
 - **Copy Time URL Header Button**: 1-click button in the markers panel to copy a link at the player's current playhead.
@@ -73,6 +80,7 @@ Touch or click-and-drag directly on the video viewport for continuous gesture na
 | Shortcut | Action |
 | :--- | :--- |
 | <kbd>Space</kbd> | Play / Pause |
+| <kbd>C</kbd> | Toggle **Captions / Subtitles (CC)** |
 | <kbd>J</kbd> / <kbd>,</kbd> | Step **1 Frame Backward** ($\sim 0.04\text{s}$) |
 | <kbd>K</kbd> / <kbd>.</kbd> | Step **1 Frame Forward** ($\sim 0.04\text{s}$) |
 | <kbd>←</kbd> / <kbd>→</kbd> | Jump $-5\text{s}$ / $+5\text{s}$ |

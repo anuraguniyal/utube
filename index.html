@@ -59,7 +59,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v1.1</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v1.2</div>
     </div>
   </header>
 
@@ -193,10 +193,65 @@
               <button class="speed-pill" data-speed="4">4.0x</button>
             </div>
 
-            <!-- Right: Frame Stepper, Volume, Fullscreen -->
+            <!-- Right: Frame Stepper, Captions, Volume, Fullscreen -->
             <div class="controls-right-cluster">
               <button id="prevFrameBtn" class="ctrl-btn" title="Previous Frame (J or ,)">◀ 1 Frame</button>
               <button id="nextFrameBtn" class="ctrl-btn" title="Next Frame (K or .)">1 Frame ▶</button>
+
+              <!-- Captions & Options Cluster -->
+              <div class="captions-wrapper">
+                <button id="captionsBtn" class="ctrl-btn ctrl-btn-cc active" title="Toggle Captions / Subtitles (C)">
+                  <span class="cc-badge">CC</span>
+                </button>
+                <button id="captionsMenuBtn" class="btn-icon cc-menu-btn" title="Caption Options & Languages">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                  </svg>
+                </button>
+
+                <!-- Captions Options Flyout Popover -->
+                <div id="captionsFlyout" class="captions-flyout">
+                  <div class="captions-flyout-header">
+                    <span>💬 Captions & Subtitles</span>
+                    <button id="closeCaptionsFlyout" class="btn-icon" style="padding: 0.15rem 0.4rem; font-size: 0.8rem;">✕</button>
+                  </div>
+                  <div class="captions-flyout-body">
+                    <!-- Toggle Switch -->
+                    <div class="flyout-row">
+                      <span>Enable Captions</span>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="captionsToggleSwitch" checked />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <!-- Language Selector -->
+                    <div class="flyout-row vertical">
+                      <span class="flyout-label">Subtitle Language:</span>
+                      <select id="captionLanguageSelect" class="flyout-select">
+                        <option value="en" selected>English (Default)</option>
+                        <option value="es">Spanish (Español)</option>
+                        <option value="fr">French (Français)</option>
+                        <option value="de">German (Deutsch)</option>
+                        <option value="ja">Japanese (日本語)</option>
+                        <option value="zh">Chinese (中文)</option>
+                        <option value="auto">Auto-Generated</option>
+                      </select>
+                    </div>
+
+                    <!-- Font Size Selector -->
+                    <div class="flyout-row vertical">
+                      <span class="flyout-label">Caption Font Size:</span>
+                      <div class="btn-toggle-group" id="captionSizeGroup">
+                        <button class="toggle-pill" data-size="0">Small</button>
+                        <button class="toggle-pill active" data-size="1">Normal</button>
+                        <button class="toggle-pill" data-size="2">Large</button>
+                        <button class="toggle-pill" data-size="3">XL</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <div class="volume-cluster">
                 <button id="muteBtn" class="btn-icon" title="Mute / Unmute (M)">
@@ -347,6 +402,7 @@
         </div>
         <div class="shortcuts-grid">
           <div class="shortcut-item"><span>Play / Pause</span><span class="kbd">Space</span></div>
+          <div class="shortcut-item"><span>Captions (CC)</span><span class="kbd">C</span></div>
           <div class="shortcut-item"><span>Frame Back (Prev)</span><span class="kbd">J</span> / <span class="kbd">,</span></div>
           <div class="shortcut-item"><span>Frame Forward (Next)</span><span class="kbd">K</span> / <span class="kbd">.</span></div>
           <div class="shortcut-item"><span>Jump -5s / +5s</span><span class="kbd">←</span> / <span class="kbd">→</span></div>
