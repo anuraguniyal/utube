@@ -61,6 +61,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const addBookmarkBtn = document.getElementById('addBookmarkBtn');
   const bookmarksList = document.getElementById('bookmarksList');
 
+  // Right Column Tabs & Search Elements
+  const tabBtnSearch = document.getElementById('tabBtnSearch');
+  const tabBtnMarkers = document.getElementById('tabBtnMarkers');
+  const searchResultsPanel = document.getElementById('searchResultsPanel');
+  const markersPanel = document.getElementById('markersPanel');
+  const markersHeaderActions = document.getElementById('markersHeaderActions');
+
+  const inlineSearchInput = document.getElementById('inlineSearchInput');
+  const inlineSearchBtn = document.getElementById('inlineSearchBtn');
+  const searchResultsList = document.getElementById('searchResultsList');
+  const searchResultCountBadge = document.getElementById('searchResultCountBadge');
+  const bmCountHeaderBadge = document.getElementById('bmCountHeaderBadge');
+  const searchQueryLabel = document.getElementById('searchQueryLabel');
+  const searchFeedbackStatus = document.getElementById('searchFeedbackStatus');
+
   const sampleVideosGrid = document.getElementById('sampleVideosGrid');
   const helpModal = document.getElementById('helpModal');
   const openHelpBtn = document.getElementById('openHelpBtn');
@@ -352,27 +367,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 6. URL & Loader Listeners
+  // 6. Search & URL Loader Listeners
+  function handleUniversalSearchOrLoad(val) {
+    const query = (val || '').trim();
+    if (!query) return;
+
+    const parsedId = player.parseYouTubeId(query);
+    if (parsedId) {
+      loadNewVideo(query);
+      gestureEngine.showMomentaryFeedback(`▶ Loading Video: ${parsedId}`, 'info');
+    } else {
+      executeSearch(query);
+    }
+  }
+
   loadVideoBtn.addEventListener('click', () => {
-    const val = urlInput.value.trim();
-    if (val) loadNewVideo(val);
+    handleUniversalSearchOrLoad(urlInput.value);
   });
 
   urlInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      const val = urlInput.value.trim();
-      if (val) loadNewVideo(val);
+      handleUniversalSearchOrLoad(urlInput.value);
     }
   });
+
+  if (inlineSearchBtn && inlineSearchInput) {
+    inlineSearchBtn.addEventListener('click', () => {
+      handleUniversalSearchOrLoad(inlineSearchInput.value);
+    });
+    inlineSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        handleUniversalSearchOrLoad(inlineSearchInput.value);
+      }
+    });
+  }
 
   if (pasteBtn && navigator.clipboard) {
     pasteBtn.addEventListener('click', async () => {
       try {
         const text = await navigator.clipboard.readText();
         urlInput.value = text;
-        loadNewVideo(text);
+        handleUniversalSearchOrLoad(text);
       } catch (err) {
-        gestureEngine.showMomentaryFeedback('Please paste URL in the input box', 'info');
+        gestureEngine.showMomentaryFeedback('Please paste search or URL in the input box', 'info');
       }
     });
   }
@@ -575,17 +612,153 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 12. Fullscreen
-  fullscreenBtn.addEventListener('click', () => {
-    const theater = document.querySelector('.player-theater-wrapper');
-    if (!document.fullscreenElement) {
-      theater.requestFullscreen().catch(err => {});
+  // 12. Right Column Tabs & Search Results Controller
+  function switchRightTab(tabName) {
+    if (tabName === 'search') {
+      if (tabBtnSearch) tabBtnSearch.classList.add('active');
+      if (tabBtnMarkers) tabBtnMarkers.classList.remove('active');
+      if (searchResultsPanel) searchResultsPanel.style.display = 'flex';
+      if (markersPanel) markersPanel.style.display = 'none';
+      if (markersHeaderActions) markersHeaderActions.style.display = 'none';
     } else {
-      document.exitFullscreen().catch(err => {});
+      if (tabBtnMarkers) tabBtnMarkers.classList.add('active');
+      if (tabBtnSearch) tabBtnSearch.classList.remove('active');
+      if (markersPanel) markersPanel.style.display = 'flex';
+      if (searchResultsPanel) searchResultsPanel.style.display = 'none';
+      if (markersHeaderActions) markersHeaderActions.style.display = 'inline-flex';
     }
-  });
+  }
 
-  // 12. Bookmarks & Markers
+  if (tabBtnSearch) tabBtnSearch.addEventListener('click', () => switchRightTab('search'));
+  if (tabBtnMarkers) tabBtnMarkers.addEventListener('click', () => switchRightTab('markers'));
+
+  let currentSearchResults = [];
+
+  async function executeSearch(query) {
+    const q = (query || '').trim();
+    if (!q) return;
+
+    switchRightTab('search');
+    if (searchQueryLabel) searchQueryLabel.textContent = `Searching for "${q}"...`;
+    if (searchFeedbackStatus) searchFeedbackStatus.textContent = '⏳ Loading...';
+    if (searchResultsList) {
+      searchResultsList.innerHTML = `
+        <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.825rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔍</div>
+          Searching for "<strong>${q}</strong>"...
+        </div>
+      `;
+    }
+
+    try {
+      const results = typeof window.searchYouTubeVideos === 'function' 
+        ? await window.searchYouTubeVideos(q)
+        : (window.YOUTUBE_RECOMMENDATIONS || []).slice(0, 10);
+
+      currentSearchResults = results;
+      renderSearchResults(results, q);
+    } catch (err) {
+      console.warn('Search error:', err);
+      const fallback = (window.YOUTUBE_RECOMMENDATIONS || []).slice(0, 10);
+      currentSearchResults = fallback;
+      renderSearchResults(fallback, q);
+    }
+  }
+
+  function renderSearchResults(results, query = '') {
+    if (!searchResultsList) return;
+    const list = Array.isArray(results) ? results : [];
+    if (searchResultCountBadge) searchResultCountBadge.textContent = list.length;
+    if (searchQueryLabel) searchQueryLabel.textContent = query ? `Results for "${query}":` : 'Top Recommended Videos:';
+    if (searchFeedbackStatus) searchFeedbackStatus.textContent = `${list.length} found`;
+
+    if (list.length === 0) {
+      searchResultsList.innerHTML = `
+        <div style="text-align: center; padding: 2rem; color: var(--text-dim); font-size: 0.8rem;">
+          No videos found for "<strong>${query}</strong>". Try different keywords or paste a direct YouTube link.
+        </div>
+      `;
+      return;
+    }
+
+    const bookmarks = player.state.bookmarks || [];
+    const isBookmarked = (vidId) => bookmarks.some(b => b && b.videoId === vidId);
+
+    searchResultsList.innerHTML = list.map(item => {
+      const isCurrent = player.videoId === item.id;
+      const activeClass = isCurrent ? 'active-playing' : '';
+      const saved = isBookmarked(item.id);
+
+      return `
+        <div class="search-result-card ${activeClass}" data-video-id="${item.id}" title="Click to play: ${item.title}" style="display: flex; flex-direction: row; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px 8px; transition: all 150ms ease; cursor: pointer; width: 100%; box-sizing: border-box;">
+          <div class="search-card-thumb-wrap" style="position: relative; width: 88px; min-width: 88px; max-width: 88px; height: 50px; border-radius: 6px; overflow: hidden; background: #000; flex-shrink: 0;">
+            <img class="search-card-thumb" src="${item.thumbnail || `https://img.youtube.com/vi/${item.id}/hqdefault.jpg`}" alt="${item.title}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='https://img.youtube.com/vi/${item.id}/hqdefault.jpg'" />
+            <span class="search-card-duration" style="position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,0.85); color: #fff; font-family: monospace; font-size: 0.6rem; font-weight: 700; padding: 1px 3px; border-radius: 3px; line-height: 1;">${item.duration || '▶'}</span>
+          </div>
+          <div class="search-card-content" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; overflow: hidden;">
+            <div class="search-card-title" style="font-size: 0.775rem; font-weight: 700; color: #f1f5f9; line-height: 1.3; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">${item.title}</div>
+            <div class="search-card-meta" style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <span class="search-card-channel" style="color: #93c5fd; font-weight: 600;">${item.channel || 'YouTube'}</span>
+              <span>•</span>
+              <span>${item.views || 'Popular'}</span>
+            </div>
+          </div>
+          <div class="search-card-actions" style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto;">
+            <button class="search-play-btn" data-video-id="${item.id}" title="Play in left player" style="display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 8px; font-size: 0.68rem; font-weight: 700; border-radius: 9999px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #93c5fd; cursor: pointer; white-space: nowrap;">
+              ▶ Play
+            </button>
+            <button class="search-bookmark-btn ${saved ? 'saved' : ''}" data-video-id="${item.id}" data-title="${encodeURIComponent(item.title)}" title="${saved ? 'Already Saved in Markers' : 'Save to Bookmarks'}" style="display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 7px; font-size: 0.68rem; font-weight: 700; border-radius: 9999px; background: ${saved ? 'rgba(16,185,129,0.18)' : 'rgba(250,204,21,0.12)'}; border: 1px solid ${saved ? 'rgba(16,185,129,0.4)' : 'rgba(250,204,21,0.3)'}; color: ${saved ? '#34d399' : '#fde047'}; cursor: pointer; white-space: nowrap;">
+              ${saved ? '✓ Saved' : '⭐ Bookmark'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Wire Card Clicks & Play Button Clicks to play video on left
+    searchResultsList.querySelectorAll('.search-result-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.search-bookmark-btn')) return; // Bookmark button handles its own click
+        const vidId = card.getAttribute('data-video-id');
+        if (vidId) {
+          loadNewVideo(vidId);
+          // Highlight active card
+          searchResultsList.querySelectorAll('.search-result-card').forEach(c => c.classList.remove('active-playing'));
+          card.classList.add('active-playing');
+          gestureEngine.showMomentaryFeedback(`▶ Loaded video on left`, 'info');
+        }
+      });
+    });
+
+    // Wire Bookmark Button Clicks on each search result
+    searchResultsList.querySelectorAll('.search-bookmark-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const vidId = btn.getAttribute('data-video-id');
+        const title = decodeURIComponent(btn.getAttribute('data-title') || '');
+        if (!vidId) return;
+
+        // Check if already bookmarked
+        const already = player.state.bookmarks && player.state.bookmarks.some(b => b.videoId === vidId);
+        if (!already) {
+          player.addBookmark(`Saved Search Result`, title, vidId, 0);
+          btn.classList.add('saved');
+          btn.textContent = '✓ Saved';
+          renderBookmarks();
+          gestureEngine.showMomentaryFeedback(`⭐ Saved "${title.slice(0, 24)}..." to Bookmarks!`, 'info');
+        } else {
+          gestureEngine.showMomentaryFeedback(`📌 Already saved in your Bookmarks!`, 'info');
+        }
+      });
+    });
+  }
+
+  // Initial search results population
+  if (typeof window.searchYouTubeVideos === 'function') {
+    executeSearch('Trending');
+  }
+
+  // 13. Bookmarks & Markers
   const copyCurrentTimeBtn = document.getElementById('copyCurrentTimeBtn');
   const copyCurrentTimeIcon = document.getElementById('copyCurrentTimeIcon');
   const addBookmarkCardBtn = document.getElementById('addBookmarkCardBtn');
@@ -684,6 +857,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update Counts
     if (bmCountAll) bmCountAll.textContent = allBookmarks.length;
     if (bmCountCurrent) bmCountCurrent.textContent = currentVideoBookmarks.length;
+    if (bmCountHeaderBadge) bmCountHeaderBadge.textContent = allBookmarks.length;
+
+    // Refresh Bookmark states on visible search result cards
+    if (searchResultsList) {
+      searchResultsList.querySelectorAll('.search-bookmark-btn').forEach(btn => {
+        const vidId = btn.getAttribute('data-video-id');
+        const isSaved = allBookmarks.some(b => b && b.videoId === vidId);
+        btn.classList.toggle('saved', isSaved);
+        btn.textContent = isSaved ? '✓ Saved' : '⭐ Bookmark';
+      });
+    }
 
     const displayList = activeBookmarkFilter === 'current' ? currentVideoBookmarks : allBookmarks;
 

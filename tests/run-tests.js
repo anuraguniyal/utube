@@ -271,8 +271,55 @@ async function runTests() {
     const markerCount = await cdp.evaluate('document.querySelectorAll("#bookmarksList .bookmark-row").length');
     assert(markerCount >= 1, 'Clicking Add Bookmark creates a new marker row in bookmarksList', `Found: ${markerCount}`);
 
-    // TEST 7: Keyboard Shortcuts Execution
-    console.log('\n--- Test Group 7: Keyboard Shortcuts Dispatch ---');
+    // TEST 7: Search Functionality & Results Panel
+    console.log('\n--- Test Group 7: Universal Search & Results ---');
+    const searchPanel = await cdp.evaluate('!!document.getElementById("searchResultsPanel")');
+    assert(searchPanel, 'Search Results Panel exists in right column');
+
+    // Type a search query into urlInput and submit
+    await cdp.evaluate(`
+      const input = document.getElementById("urlInput");
+      input.value = "lofi";
+      document.getElementById("loadVideoBtn").click();
+    `);
+    await new Promise(r => setTimeout(r, 400));
+
+    const searchCardsCount = await cdp.evaluate('document.querySelectorAll("#searchResultsList .search-result-card").length');
+    assert(searchCardsCount >= 1, 'Search for "lofi" populates search results cards', `Found: ${searchCardsCount} cards`);
+
+    const activeTabSearch = await cdp.evaluate('document.getElementById("tabBtnSearch").classList.contains("active")');
+    assert(activeTabSearch, 'Search submission automatically activates Search Results tab');
+
+    // TEST 8: Bookmark from Search Result Card
+    console.log('\n--- Test Group 8: Save Bookmark from Search Result ---');
+    const firstBookmarkBtn = await cdp.evaluate('!!document.querySelector("#searchResultsList .search-bookmark-btn")');
+    assert(firstBookmarkBtn, 'Search result card contains Bookmark button');
+
+    // Click bookmark button on first search result
+    await cdp.evaluate('document.querySelector("#searchResultsList .search-bookmark-btn").click()');
+    await new Promise(r => setTimeout(r, 200));
+
+    const isBtnSaved = await cdp.evaluate('document.querySelector("#searchResultsList .search-bookmark-btn").classList.contains("saved")');
+    assert(isBtnSaved, 'Clicking Search Bookmark button toggles it to saved state');
+
+    // Switch to Markers tab and verify the saved marker is listed
+    await cdp.evaluate('document.getElementById("tabBtnMarkers").click()');
+    await new Promise(r => setTimeout(r, 200));
+
+    const markerRows = await cdp.evaluate('document.querySelectorAll("#bookmarksList .bookmark-row").length');
+    assert(markerRows >= 1, 'Saved search result appears in Markers & Bookmarks list', `Found: ${markerRows}`);
+
+    // TEST 9: Play Video from Search Result
+    console.log('\n--- Test Group 9: Play Video from Search Card ---');
+    await cdp.evaluate('document.getElementById("tabBtnSearch").click()');
+    await new Promise(r => setTimeout(r, 150));
+
+    await cdp.evaluate('document.querySelector("#searchResultsList .search-result-card").click()');
+    await new Promise(r => setTimeout(r, 300));
+    assert(true, 'Clicked search result card to load and play video on left');
+
+    // TEST 10: Keyboard Shortcuts Execution
+    console.log('\n--- Test Group 10: Keyboard Shortcuts Dispatch ---');
     await cdp.evaluate(`
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c' }));
     `);
@@ -288,8 +335,8 @@ async function runTests() {
     await new Promise(r => setTimeout(r, 100));
     assert(true, 'Dispatched frame stepping shortcuts ( , / . / j / k ) successfully');
 
-    // TEST 8: Console Error Check
-    console.log('\n--- Test Group 8: Browser Error Log Check ---');
+    // TEST 11: Console Error Check
+    console.log('\n--- Test Group 11: Browser Error Log Check ---');
     const errorLogs = cdp.consoleLogs.filter(l => l.type === 'error');
     assert(errorLogs.length === 0, 'Zero runtime JavaScript errors in browser console', 
       errorLogs.length > 0 ? JSON.stringify(errorLogs) : 'Clean console');

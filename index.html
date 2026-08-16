@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=4.3" />
+  <link rel="stylesheet" href="style.css?v=4.7" />
 
   <script>
     function openHelpModal() {
@@ -72,17 +72,17 @@
       </button>
     </div>
 
-    <!-- Middle Section: Centered URL Input & Loader -->
+    <!-- Middle Section: Centered Search / URL Input & Loader -->
     <div class="header-center">
       <div class="url-input-container">
-        <input type="text" id="urlInput" class="url-input" placeholder="Paste YouTube URL or Video ID (e.g. youtu.be/...)" spellcheck="false" autocomplete="off" />
+        <input type="text" id="urlInput" class="url-input" placeholder="🔍 Search YouTube or paste video URL / ID..." spellcheck="false" autocomplete="off" />
         <div class="url-btn-group">
           <button id="pasteBtn" class="btn-icon" title="Paste from Clipboard">
             📋
           </button>
-          <button id="loadVideoBtn" class="btn-primary">
-            <span>Play</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <button id="loadVideoBtn" class="btn-primary" title="Search or Load Video">
+            <span>Search / Play</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
           </button>
         </div>
       </div>
@@ -90,7 +90,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v4.4</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v4.8</div>
     </div>
   </header>
 
@@ -370,31 +370,66 @@
         </div>
       </div>
 
-      <!-- Right Column: Saved Timestamp Markers & Bookmarks -->
-      <div class="card">
-        <div class="card-header" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; box-sizing: border-box;">
-          <h3 class="card-title" style="font-size: 0.9rem; font-weight: 700; white-space: nowrap; margin: 0; display: inline-flex; align-items: center; gap: 4px;">
-            <span>📌 Markers</span>
-          </h3>
-          <div class="card-header-actions" style="display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; flex-shrink: 0;">
-            <button id="addBookmarkCardBtn" class="btn-primary" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 9px; font-size: 0.725rem; font-weight: 700; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; box-shadow: none;" title="Mark current video timestamp">
-              <span>⭐ Mark Time</span>
-            </button>
-            <button id="copyCurrentTimeBtn" class="btn-ghost" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 8px; font-size: 0.725rem; font-weight: 600; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; background: rgba(255, 255, 255, 0.06);" title="Copy YouTube link with current timestamp">
-              <span id="copyCurrentTimeIcon" style="margin-right: 2px;">🔗</span>
-              <span>Copy Link</span>
-            </button>
+      <!-- Right Column: Search Results & Saved Markers / Bookmarks -->
+      <div class="card" id="rightSidebarCard">
+        <div class="card-header" style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box; padding-bottom: 8px;">
+          <!-- Top Tab Switcher: Search Results vs Markers -->
+          <div class="right-tab-bar" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 6px; width: 100%; border-bottom: 1px solid var(--border-subtle); padding-bottom: 6px;">
+            <div style="display: flex; gap: 5px;">
+              <button id="tabBtnSearch" class="right-tab-btn active" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; font-size: 0.775rem; font-weight: 700; border-radius: 9999px; border: 1px solid var(--border-focus); background: rgba(59,130,246,0.15); color: #93c5fd; cursor: pointer;">
+                <span>🔍 Search Results</span>
+                <span id="searchResultCountBadge" class="badge-pill" style="font-size: 0.65rem; background: rgba(59,130,246,0.3); color: #93c5fd; padding: 1px 6px; border-radius: 9999px;">0</span>
+              </button>
+              <button id="tabBtnMarkers" class="right-tab-btn" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; font-size: 0.775rem; font-weight: 700; border-radius: 9999px; border: 1px solid transparent; background: rgba(255,255,255,0.05); color: var(--text-muted); cursor: pointer;">
+                <span>📌 Markers</span>
+                <span id="bmCountHeaderBadge" class="badge-pill" style="font-size: 0.65rem; background: rgba(255,255,255,0.1); color: var(--text-muted); padding: 1px 6px; border-radius: 9999px;">0</span>
+              </button>
+            </div>
+
+            <!-- Quick Timestamp Actions (shown on Markers tab) -->
+            <div id="markersHeaderActions" style="display: inline-flex; align-items: center; gap: 4px;">
+              <button id="addBookmarkCardBtn" class="btn-primary" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 9px; font-size: 0.725rem; font-weight: 700; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; box-shadow: none;" title="Mark current video timestamp">
+                <span>⭐ Mark Time</span>
+              </button>
+              <button id="copyCurrentTimeBtn" class="btn-ghost" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 8px; font-size: 0.725rem; font-weight: 600; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; background: rgba(255, 255, 255, 0.06);" title="Copy YouTube link with current timestamp">
+                <span id="copyCurrentTimeIcon" style="margin-right: 2px;">🔗</span>
+                <span>Copy</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Filter Sub-Bar: All Videos vs This Video -->
-        <div class="bookmark-filter-bar" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 3px; background: rgba(0, 0, 0, 0.25); border-radius: 9999px; border: 1px solid var(--border-subtle); margin-bottom: 4px;">
-          <button id="filterBmAll" class="bm-filter-btn active" style="flex: 1; text-align: center; white-space: nowrap;">All (<span id="bmCountAll">0</span>)</button>
-          <button id="filterBmCurrent" class="bm-filter-btn" style="flex: 1; text-align: center; white-space: nowrap;">Current Video (<span id="bmCountCurrent">0</span>)</button>
+        <!-- Panel 1: Search Results View -->
+        <div id="searchResultsPanel" class="tab-panel active" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+          <!-- Inline Search Bar for quick search queries -->
+          <div class="search-inline-bar" style="display: flex; gap: 6px; align-items: center; background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 5px 9px;">
+            <span style="opacity: 0.6; font-size: 0.85rem;">🔍</span>
+            <input type="text" id="inlineSearchInput" placeholder="Search keywords (e.g. lofi, 4k nature, tech, music)..." style="background: transparent; border: none; outline: none; color: #fff; font-size: 0.8rem; width: 100%; font-family: var(--font-sans);" />
+            <button id="inlineSearchBtn" class="btn-primary" style="height: 24px; padding: 0 9px; font-size: 0.7rem; font-weight: 700; border-radius: 9999px; cursor: pointer; white-space: nowrap;">Search</button>
+          </div>
+
+          <!-- Status / Query Indicator -->
+          <div id="searchStatusHeader" style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); padding: 0 2px;">
+            <span id="searchQueryLabel">Showing Top Recommended Videos:</span>
+            <span id="searchFeedbackStatus" style="color: #93c5fd;"></span>
+          </div>
+
+          <div id="searchResultsList" class="search-results-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 460px; overflow-y: auto;">
+            <!-- Populated dynamically with Search Cards -->
+          </div>
         </div>
 
-        <div id="bookmarksList" class="bookmarks-list">
-          <!-- Populated dynamically -->
+        <!-- Panel 2: Saved Timestamp Markers & Bookmarks View -->
+        <div id="markersPanel" class="tab-panel" style="display: none; flex-direction: column; gap: 8px; width: 100%;">
+          <!-- Filter Sub-Bar: All Videos vs This Video -->
+          <div class="bookmark-filter-bar" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 3px; background: rgba(0, 0, 0, 0.25); border-radius: 9999px; border: 1px solid var(--border-subtle); margin-bottom: 4px;">
+            <button id="filterBmAll" class="bm-filter-btn active" style="flex: 1; text-align: center; white-space: nowrap;">All (<span id="bmCountAll">0</span>)</button>
+            <button id="filterBmCurrent" class="bm-filter-btn" style="flex: 1; text-align: center; white-space: nowrap;">Current Video (<span id="bmCountCurrent">0</span>)</button>
+          </div>
+
+          <div id="bookmarksList" class="bookmarks-list">
+            <!-- Populated dynamically -->
+          </div>
         </div>
       </div>
 
@@ -490,9 +525,9 @@
   </dialog>
 
   <!-- Scripts -->
-  <script src="recommendations.js?v=4.4"></script>
-  <script src="player.js?v=4.4"></script>
-  <script src="gesture-engine.js?v=4.4"></script>
-  <script src="app.js?v=4.4"></script>
+  <script src="recommendations.js?v=4.5"></script>
+  <script src="player.js?v=4.5"></script>
+  <script src="gesture-engine.js?v=4.5"></script>
+  <script src="app.js?v=4.5"></script>
 </body>
 </html>

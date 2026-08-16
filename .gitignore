@@ -1,0 +1,6 @@
+# Temporary screenshots & logs
+*.png
+*.jpg
+*.log
+/tmp/
+tests/*.png

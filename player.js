@@ -697,19 +697,23 @@ class PlayerController {
 
   // --- Bookmarks ---
 
-  addBookmark(label = '', customTitle = '') {
+  addBookmark(label = '', customTitle = '', customVideoId = null, customTime = null) {
     let time = 0;
-    try {
-      if (this.player && typeof this.player.getCurrentTime === 'function') {
-        time = this.player.getCurrentTime();
-      }
-    } catch (e) {}
+    if (typeof customTime === 'number' && !isNaN(customTime)) {
+      time = customTime;
+    } else {
+      try {
+        if (this.player && typeof this.player.getCurrentTime === 'function') {
+          time = this.player.getCurrentTime();
+        }
+      } catch (e) {}
 
-    if (typeof time !== 'number' || isNaN(time) || time < 0) {
-      time = this.state.currentTime || this.virtualTime || 0;
+      if (typeof time !== 'number' || isNaN(time) || time < 0) {
+        time = this.state.currentTime || this.virtualTime || 0;
+      }
     }
 
-    const vId = this.videoId || 'LXb3EKWsInQ';
+    const vId = customVideoId || this.videoId || 'LXb3EKWsInQ';
     const title = customTitle || this.state.title || (typeof document !== 'undefined' && document.getElementById('currentVideoTitle')?.textContent) || `Video: ${vId}`;
     const roundTime = Math.max(0, Math.round(time * 10) / 10);
     const videoUrl = `https://youtu.be/${vId}?t=${Math.floor(roundTime)}`;
