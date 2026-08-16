@@ -131,7 +131,7 @@ async function capture() {
       await config.run(cdp);
     }
 
-    const ss = await send('Page.captureScreenshot', { format: 'png' });
+    const ss = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
     fs.writeFileSync(outputPath, Buffer.from(ss.data, 'base64'));
     console.log(`📸 Screenshot saved successfully to: ${outputPath}`);
 

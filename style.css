@@ -620,6 +620,41 @@ body {
   transition: transform 0.25s ease;
 }
 
+/* Active Video Title & Meta Bar inside Player Panel */
+.player-video-info-bar {
+  position: relative;
+  z-index: 20;
+  padding: 14px 20px 16px;
+  background: #0d1117;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.player-video-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  line-height: 1.35;
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+
+.player-video-desc {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* Interactive Drag-to-Resize Grip Handle */
 .player-resize-handle {
   position: absolute;
@@ -945,7 +980,7 @@ body {
   z-index: 30;
   background: #11151e;
   border-top: 1px solid var(--border-subtle);
-  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  border-radius: 0;
   padding: 0.85rem 1.25rem 1rem;
   display: flex;
   flex-direction: column;
