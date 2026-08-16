@@ -272,8 +272,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 4. Video Resizing & Aspect Ratio Controls
   function setPlayerWidth(widthStr, activeBtn = null) {
-    playerTheaterWrapper.style.width = widthStr;
-    playerTheaterWrapper.style.maxWidth = widthStr;
+    videoViewport.style.width = widthStr;
+    videoViewport.style.maxWidth = widthStr;
+    playerTheaterWrapper.style.width = '100%';
+    playerTheaterWrapper.style.maxWidth = '100%';
+    playerTheaterWrapper.setAttribute('data-video-width', widthStr);
 
     [sizeCompactBtn, sizeStandardBtn, sizeCinemaBtn].forEach(b => {
       if (b) b.classList.remove('active');
@@ -285,17 +288,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   sizeCompactBtn.addEventListener('click', () => {
     setPlayerWidth('720px', sizeCompactBtn);
-    gestureEngine.showMomentaryFeedback('Compact Mode (720px)', 'info');
+    gestureEngine.showMomentaryFeedback('Compact Video Mode (720px)', 'info');
   });
 
   sizeStandardBtn.addEventListener('click', () => {
     setPlayerWidth('1080px', sizeStandardBtn);
-    gestureEngine.showMomentaryFeedback('Standard Mode (1080px)', 'info');
+    gestureEngine.showMomentaryFeedback('Standard Video Mode (1080px)', 'info');
   });
 
   sizeCinemaBtn.addEventListener('click', () => {
     setPlayerWidth('100%', sizeCinemaBtn);
-    gestureEngine.showMomentaryFeedback('Cinema Full Width', 'info');
+    gestureEngine.showMomentaryFeedback('Cinema Full Width Video', 'info');
   });
 
   let is21by9 = false;
@@ -317,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateResizeBadge() {
     if (!resizeBadge || !resizeBadgeText) return;
-    const rect = playerTheaterWrapper.getBoundingClientRect();
+    const rect = videoViewport.getBoundingClientRect();
     const w = Math.round(rect.width);
     const h = Math.round(rect.height);
     const ratio = is21by9 ? '21:9' : '16:9';
@@ -337,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
       resizeBadge.classList.add('active');
 
       startResizeX = e.clientX;
-      startWidth = playerTheaterWrapper.getBoundingClientRect().width;
+      startWidth = videoViewport.getBoundingClientRect().width;
 
       e.preventDefault();
       e.stopPropagation();
@@ -348,8 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const deltaX = (e.clientX - startResizeX) * 2; // symmetric expand
       const newWidth = Math.max(480, Math.min(window.innerWidth - 60, startWidth + deltaX));
       
-      playerTheaterWrapper.style.width = `${newWidth}px`;
-      playerTheaterWrapper.style.maxWidth = `${newWidth}px`;
+      videoViewport.style.width = `${newWidth}px`;
+      videoViewport.style.maxWidth = `${newWidth}px`;
+      playerTheaterWrapper.setAttribute('data-video-width', `${newWidth}px`);
 
       updateResizeBadge();
     });

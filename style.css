@@ -570,37 +570,48 @@ body {
   }
 }
 
-/* Container Query on Player Theater Wrapper */
+/* Container Query on Player Theater Wrapper - Takes Full Available Width */
 .player-theater-wrapper {
   container-type: inline-size;
   container-name: playerbox;
   position: relative;
   width: 100%;
-  max-width: 1080px;
+  max-width: 100%;
   background: #11151e;
   border-radius: var(--radius-xl);
   box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--border-subtle);
   display: flex;
   flex-direction: column;
-  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: visible;
   flex: 1;
 }
 
-/* Video Viewport */
+/* Stage Screen Area (Full-Width Cinematic Backdrop for Centered Resizable Video) */
+.player-video-stage-area {
+  position: relative;
+  width: 100%;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  overflow: hidden;
+}
+
+/* Video Viewport - Center-aligned, resizable without shrinking the control panel */
 .player-video-viewport {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  max-width: 1080px; /* Default Standard Size */
+  aspect-ratio: 16 / 9;
   background: #000;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   overflow: hidden;
   user-select: none;
-  transition: padding-top 0.25s ease;
+  transition: max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1), aspect-ratio 0.25s ease;
 }
 
 .player-video-viewport.aspect-21-9 {
-  padding-top: 42.85%; /* 21:9 Ultrawide */
+  aspect-ratio: 21 / 9;
 }
 
 .player-video-viewport.zoom-cover iframe,

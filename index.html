@@ -90,7 +90,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v5.6</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v5.7</div>
     </div>
   </header>
 
@@ -109,57 +109,60 @@
             <span id="resizeBadgeText">1080 × 608 (16:9)</span>
           </div>
 
-          <!-- Video Viewport with YouTube API iframe -->
-          <div class="player-video-viewport" id="videoViewport">
-            <div id="youtubePlayer"></div>
+          <!-- Stage Screen Area (Full Width Backdrop with Centered Sizable Viewport) -->
+          <div class="player-video-stage-area" id="videoStageArea">
+            <!-- Video Viewport with YouTube API iframe -->
+            <div class="player-video-viewport" id="videoViewport">
+              <div id="youtubePlayer"></div>
 
-            <!-- Gesture Surface Overlay -->
-            <div id="gestureOverlay" class="gesture-surface-overlay">
-              
-              <!-- Touch Point Ring -->
-              <div id="gestureRing" class="touch-ring hidden"></div>
-
-              <!-- Dynamic Split Zone HUD Overlay -->
-              <div id="gestureHud" class="gesture-hud-container">
+              <!-- Gesture Surface Overlay -->
+              <div id="gestureOverlay" class="gesture-surface-overlay">
                 
-                <!-- Split Half Highlight Overlays -->
-                <div class="hud-zones-wrapper">
-                  <div id="hudZoneLeft" class="hud-zone-half zone-left">
-                    <div class="zone-watermark">⏪ REWIND</div>
-                  </div>
-                  <div id="hudZoneRight" class="hud-zone-half zone-right">
-                    <div class="zone-watermark">FORWARD ⏩</div>
-                  </div>
-                </div>
+                <!-- Touch Point Ring -->
+                <div id="gestureRing" class="touch-ring hidden"></div>
 
-                <!-- Central Speed HUD Cluster -->
-                <div class="hud-center-cluster">
-                  <div class="hud-dial-card">
-                    <!-- Vertical Speed Gauge Bar -->
-                    <div class="hud-speed-gauge-track">
-                      <div id="hudSpeedBar" class="hud-speed-gauge-bar"></div>
+                <!-- Dynamic Split Zone HUD Overlay -->
+                <div id="gestureHud" class="gesture-hud-container">
+                  
+                  <!-- Split Half Highlight Overlays -->
+                  <div class="hud-zones-wrapper">
+                    <div id="hudZoneLeft" class="hud-zone-half zone-left">
+                      <div class="zone-watermark">⏪ REWIND</div>
                     </div>
-
-                    <!-- Center Multiplier Display -->
-                    <div class="hud-dial-center">
-                      <div id="hudCenterIcon" class="hud-center-icon">⏪</div>
-                      <div id="hudSpeedValue" class="hud-speed-value">-2.0x</div>
-                      <div id="hudSpeedMode" class="hud-speed-mode">REVERSE REWIND</div>
+                    <div id="hudZoneRight" class="hud-zone-half zone-right">
+                      <div class="zone-watermark">FORWARD ⏩</div>
                     </div>
                   </div>
 
-                  <!-- Dynamic Tip Text -->
-                  <div id="hudTip" class="hud-tip">
-                    ⏪ Left Zone: Rewinding at -2.0x • Drag ↑ UP Faster / ↓ DOWN Slower
-                  </div>
-                </div>
+                  <!-- Central Speed HUD Cluster -->
+                  <div class="hud-center-cluster">
+                    <div class="hud-dial-card">
+                      <!-- Vertical Speed Gauge Bar -->
+                      <div class="hud-speed-gauge-track">
+                        <div id="hudSpeedBar" class="hud-speed-gauge-bar"></div>
+                      </div>
 
+                      <!-- Center Multiplier Display -->
+                      <div class="hud-dial-center">
+                        <div id="hudCenterIcon" class="hud-center-icon">⏪</div>
+                        <div id="hudSpeedValue" class="hud-speed-value">-2.0x</div>
+                        <div id="hudSpeedMode" class="hud-speed-mode">REVERSE REWIND</div>
+                      </div>
+                    </div>
+
+                    <!-- Dynamic Tip Text -->
+                    <div id="hudTip" class="hud-tip">
+                      ⏪ Left Zone: Rewinding at -2.0x • Drag ↑ UP Faster / ↓ DOWN Slower
+                    </div>
+                  </div>
+
+                </div>
               </div>
-            </div>
 
-            <!-- Momentary Action Feedback Toast -->
-            <div id="momentaryToast" class="momentary-toast">
-              <span>⚡ Boost 2.0x</span>
+              <!-- Momentary Action Feedback Toast -->
+              <div id="momentaryToast" class="momentary-toast">
+                <span>⚡ Boost 2.0x</span>
+              </div>
             </div>
           </div>
 
@@ -519,9 +522,9 @@
   </dialog>
 
   <!-- Scripts -->
-  <script src="recommendations.js?v=5.6"></script>
-  <script src="player.js?v=5.6"></script>
-  <script src="gesture-engine.js?v=5.6"></script>
-  <script src="app.js?v=5.6"></script>
+  <script src="recommendations.js?v=5.7"></script>
+  <script src="player.js?v=5.7"></script>
+  <script src="gesture-engine.js?v=5.7"></script>
+  <script src="app.js?v=5.7"></script>
 </body>
 </html>

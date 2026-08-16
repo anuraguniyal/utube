@@ -239,17 +239,17 @@ async function runTests() {
     console.log('\n--- Test Group 4: Sizing Presets ---');
     await cdp.evaluate('document.getElementById("sizeCompactBtn").click()');
     await new Promise(r => setTimeout(r, 100));
-    const compactWidth = await cdp.evaluate('document.getElementById("playerTheaterWrapper").style.maxWidth');
+    const compactWidth = await cdp.evaluate('document.getElementById("videoViewport").style.maxWidth');
     assert(compactWidth === '720px', 'Compact button sets max-width to 720px', `Found: "${compactWidth}"`);
 
     await cdp.evaluate('document.getElementById("sizeCinemaBtn").click()');
     await new Promise(r => setTimeout(r, 100));
-    const cinemaWidth = await cdp.evaluate('document.getElementById("playerTheaterWrapper").style.maxWidth');
+    const cinemaWidth = await cdp.evaluate('document.getElementById("videoViewport").style.maxWidth');
     assert(cinemaWidth === '100%', 'Cinema button sets max-width to 100%', `Found: "${cinemaWidth}"`);
 
     await cdp.evaluate('document.getElementById("sizeStandardBtn").click()');
     await new Promise(r => setTimeout(r, 100));
-    const standardWidth = await cdp.evaluate('document.getElementById("playerTheaterWrapper").style.maxWidth');
+    const standardWidth = await cdp.evaluate('document.getElementById("videoViewport").style.maxWidth');
     assert(standardWidth === '1080px', 'Standard button sets max-width to 1080px', `Found: "${standardWidth}"`);
 
     // TEST 5: Frame Stepping Buttons
