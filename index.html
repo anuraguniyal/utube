@@ -59,17 +59,16 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.2</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.3</div>
     </div>
   </header>
 
   <!-- Main Container -->
   <main class="main-content">
 
-    <!-- Player Theater Container with Interactive Drag-to-Resize & Side-by-Side Live Chat -->
+    <!-- Player Theater Container with Interactive Drag-to-Resize -->
     <div class="player-theater-outer" id="playerTheaterOuter">
-      <div class="player-theater-stage" id="playerTheaterStage">
-        <div class="player-theater-wrapper" id="playerTheaterWrapper">
+      <div class="player-theater-wrapper" id="playerTheaterWrapper">
         
         <!-- Live Resize Overlay Badge -->
         <div id="resizeBadge" class="resize-badge">
@@ -264,10 +263,6 @@
                 <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100" />
               </div>
 
-              <button id="toggleChatBtn" class="btn-icon" title="Toggle Stream Chat on Right (Shift + C)">
-                <span style="font-size: 0.95rem;">💬</span>
-              </button>
-
               <button id="fullscreenBtn" class="btn-icon" title="Fullscreen (F)">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
@@ -300,74 +295,8 @@
 
         </div>
 
-        <!-- Live / Stream Chat Sidebar (Side by Side on Right of Video) -->
-        <div class="theater-chat-sidebar" id="theaterChatSidebar">
-          <div class="chat-sidebar-header">
-            <div class="chat-sidebar-title">
-              <span>💬 Stream Chat Hub</span>
-            </div>
-            <div class="chat-sidebar-actions">
-              <button id="popoutChatBtn" class="chat-header-btn" title="Open YouTube official live chat window">⤢ Pop Out</button>
-              <button id="closeChatSidebarBtn" class="chat-header-btn" title="Hide chat sidebar">✕</button>
-            </div>
-          </div>
-          
-          <div class="chat-sidebar-body">
-            <!-- Top Popout Action Banner -->
-            <div class="chat-popout-card">
-              <div class="chat-popout-header">
-                <span class="chat-status-dot"></span>
-                <span style="font-size: 0.775rem; font-weight: 700; color: #fff;">YouTube Companion Windows</span>
-              </div>
-              <p style="font-size: 0.7rem; color: var(--text-dim); margin: 0.25rem 0 0.5rem 0; line-height: 1.35;">
-                Open dedicated chat/comments in a companion popup beside the player:
-              </p>
-              <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                <button id="openPopoutChatDirectBtn" class="btn-primary chat-launch-btn" title="Open YouTube Live Chat (For live streams)">
-                  <span>🔴 Launch Live Stream Chat</span>
-                </button>
-                <button id="openPopoutCommentsBtn" class="btn-ghost chat-launch-btn" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-subtle);" title="Open YouTube Video Comments (For standard videos)">
-                  <span>💬 Open Video Comments</span>
-                </button>
-              </div>
-              <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 0.4rem; line-height: 1.25;">
-                💡 <em>Live Chat requires a live stream or broadcast recording. For pre-recorded videos, use Video Comments.</em>
-              </div>
-            </div>
-
-            <!-- Quick Live Streams Preset Row -->
-            <div class="chat-presets-section">
-              <span class="chat-presets-label">🔴 Test with 24/7 Live Stream + Chat:</span>
-              <div class="chat-presets-chips">
-                <button class="chat-preset-chip" data-vid="jfKfPfyJRdk">🎧 Lofi Girl Live</button>
-                <button class="chat-preset-chip" data-vid="21X5lGlDOfg">🚀 NASA Space</button>
-                <button class="chat-preset-chip" data-vid="5yx6BWlEVcY">🎵 ChillHop</button>
-              </div>
-            </div>
-
-            <!-- Timestamped Stream Notes & Chat Feed -->
-            <div class="stream-notes-section">
-              <div class="stream-notes-header">
-                <span>📝 Stream Notes & Reactions</span>
-                <span id="notesCount" class="notes-count-badge">0</span>
-              </div>
-              <div id="streamNotesFeed" class="stream-notes-feed">
-                <!-- Populated dynamically -->
-              </div>
-              
-              <!-- Input Bar -->
-              <form id="streamNoteForm" class="stream-note-input-bar">
-                <span id="currentNoteTimestamp" class="note-time-badge">0:00</span>
-                <input type="text" id="streamNoteInput" class="note-text-input" placeholder="Add note at current time..." autocomplete="off" />
-                <button type="submit" class="note-send-btn" title="Send (Enter)">➤</button>
-              </form>
-            </div>
-
-          </div>
-        </div>
-
-      </div> <!-- /player-theater-stage -->
-    </div> <!-- /player-theater-outer -->
+      </div>
+    </div>
 
     <!-- Active Video Details & YouTube Recommendations Feed -->
     <div class="dashboard-grid">

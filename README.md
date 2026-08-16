@@ -73,11 +73,8 @@ Touch or click-and-drag directly on the video viewport for continuous gesture na
 - **1-Click Video Switch & Jump**: Clicking a bookmark from another video automatically loads that video and seeks directly to the saved timestamp.
 - **Filter Tabs**: Toggle between `All Videos` and `This Video` to quickly find your saved moments.
 - **Yellow Dots on Timeline**: Saved bookmarks for the active video are displayed as bright yellow glowing dots along the scrubber timeline.
-### 8. 💬 Side-by-Side Live Stream Chat & Replay Chat
-- **Side-by-Side Theater Layout**: Watch the video and live/replay chat side-by-side on the right of the video.
-- **Toggle Visibility**: Easily show or hide the chat sidebar with the toolbar **`💬`** button, header close button, or <kbd>Shift</kbd> + <kbd>C</kbd>.
-- **⤢ Detached Pop-Out Window**: 1-click **Pop Out** button to open a dedicated floating chat popup that bypasses any domain embed limitations.
-- **Automatic Sync**: Updates automatically whenever a new video or live stream is loaded.
+- **Copy Timestamp Link (`🔗`)**: Dedicated button on each marker to copy the full YouTube timestamp URL.
+- **Persistent Storage**: All multi-video bookmarks are saved to browser `localStorage`.
 
 ---
 
@@ -87,7 +84,6 @@ Touch or click-and-drag directly on the video viewport for continuous gesture na
 | :--- | :--- |
 | <kbd>Space</kbd> | Play / Pause |
 | <kbd>C</kbd> | Toggle **Captions / Subtitles (CC)** |
-| <kbd>Shift</kbd> + <kbd>C</kbd> | Toggle **Stream Chat Sidebar (Right of Video)** |
 | <kbd>J</kbd> / <kbd>,</kbd> | Step **1 Frame Backward** ($\sim 0.04\text{s}$) |
 | <kbd>K</kbd> / <kbd>.</kbd> | Step **1 Frame Forward** ($\sim 0.04\text{s}$) |
 | <kbd>←</kbd> / <kbd>→</kbd> | Jump $-5\text{s}$ / $+5\text{s}$ |

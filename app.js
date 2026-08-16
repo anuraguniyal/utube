@@ -225,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
       
       updateVideoMetadata(res.videoId);
       renderBookmarks();
-      renderStreamNotes();
 
       if (startTime > 0) {
         setTimeout(() => {
@@ -889,188 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderBookmarks();
 
-  // 13. Theater Side-by-Side Stream Chat Controller
-  const toggleChatBtn = document.getElementById('toggleChatBtn');
-  const theaterChatSidebar = document.getElementById('theaterChatSidebar');
-  const closeChatSidebarBtn = document.getElementById('closeChatSidebarBtn');
-  const popoutChatBtn = document.getElementById('popoutChatBtn');
-  const openPopoutChatDirectBtn = document.getElementById('openPopoutChatDirectBtn');
-  const streamNotesFeed = document.getElementById('streamNotesFeed');
-  const streamNoteForm = document.getElementById('streamNoteForm');
-  const streamNoteInput = document.getElementById('streamNoteInput');
-  const currentNoteTimestamp = document.getElementById('currentNoteTimestamp');
-  const notesCount = document.getElementById('notesCount');
-
-  let isChatSidebarOpen = true;
-
-  function toggleChatSidebar(forceState = null) {
-    if (!theaterChatSidebar) return;
-    if (forceState !== null) {
-      isChatSidebarOpen = forceState;
-    } else {
-      isChatSidebarOpen = !isChatSidebarOpen;
-    }
-
-    theaterChatSidebar.classList.toggle('hidden', !isChatSidebarOpen);
-    if (toggleChatBtn) {
-      toggleChatBtn.classList.toggle('active', isChatSidebarOpen);
-    }
-
-    if (isChatSidebarOpen) {
-      renderStreamNotes();
-      gestureEngine.showMomentaryFeedback('💬 Stream Chat ON (Right Side)', 'info');
-    } else {
-      gestureEngine.showMomentaryFeedback('Stream Chat Hidden', 'info');
-    }
-  }
-
-  if (toggleChatBtn) {
-    toggleChatBtn.addEventListener('click', () => toggleChatSidebar());
-  }
-
-  if (closeChatSidebarBtn) {
-    closeChatSidebarBtn.addEventListener('click', () => toggleChatSidebar(false));
-  }
-
-  function getDirectLiveChatUrl(videoId) {
-    const vid = videoId || player.videoId || 'LXb3EKWsInQ';
-    return `https://www.youtube.com/live_chat?v=${encodeURIComponent(vid)}&is_popout=1`;
-  }
-
-  function openPopoutChat() {
-    const vid = player.videoId || 'LXb3EKWsInQ';
-    const url = getDirectLiveChatUrl(vid);
-    window.open(url, `YouTubeLiveChat_${vid}`, 'width=420,height=650,resizable=yes,scrollbars=yes,menubar=no,toolbar=no,location=no,status=no');
-    gestureEngine.showMomentaryFeedback('💬 Opened Floating YouTube Live Chat', 'info');
-  }
-
-  const openPopoutCommentsBtn = document.getElementById('openPopoutCommentsBtn');
-
-  function openPopoutComments() {
-    const vid = player.videoId || 'LXb3EKWsInQ';
-    const url = `https://www.youtube.com/watch?v=${encodeURIComponent(vid)}`;
-    window.open(url, `YouTubeComments_${vid}`, 'width=500,height=700,resizable=yes,scrollbars=yes');
-    gestureEngine.showMomentaryFeedback('💬 Opened YouTube Video Comments Window', 'info');
-  }
-
-  if (popoutChatBtn) {
-    popoutChatBtn.addEventListener('click', openPopoutChat);
-  }
-
-  if (openPopoutChatDirectBtn) {
-    openPopoutChatDirectBtn.addEventListener('click', openPopoutChat);
-  }
-
-  if (openPopoutCommentsBtn) {
-    openPopoutCommentsBtn.addEventListener('click', openPopoutComments);
-  }
-
-  // Quick Live Stream Chips
-  document.querySelectorAll('.chat-preset-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const vid = chip.getAttribute('data-vid');
-      if (vid) {
-        loadNewVideo(vid);
-        gestureEngine.showMomentaryFeedback(`🔴 Loaded Live Stream: ${chip.textContent.trim()}`, 'info');
-      }
-    });
-  });
-
-  // --- Interactive Stream Notes & Reactions Store ---
-  function getStreamNotes() {
-    try {
-      return JSON.parse(localStorage.getItem('utube_stream_notes') || '[]');
-    } catch (e) {
-      return [];
-    }
-  }
-
-  function saveStreamNotes(notes) {
-    try {
-      localStorage.setItem('utube_stream_notes', JSON.stringify(notes));
-    } catch (e) {}
-  }
-
-  function renderStreamNotes() {
-    if (!streamNotesFeed) return;
-    const allNotes = getStreamNotes();
-    const vid = player.videoId;
-    const currentNotes = allNotes.filter(n => n.videoId === vid).sort((a, b) => a.time - b.time);
-
-    if (notesCount) notesCount.textContent = currentNotes.length;
-
-    if (currentNotes.length === 0) {
-      streamNotesFeed.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 120px; text-align: center; color: var(--text-dim); font-size: 0.725rem; padding: 1rem;">
-          <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">📝</div>
-          <div>No notes yet for this stream.</div>
-          <div style="font-size: 0.675rem; margin-top: 0.2rem; color: var(--text-muted);">Type a reaction or comment below to tag the timestamp!</div>
-        </div>
-      `;
-      return;
-    }
-
-    streamNotesFeed.innerHTML = currentNotes.map(n => `
-      <div class="stream-note-item" data-id="${n.id}">
-        <span class="note-time-pill" data-time="${n.time}" title="Jump to ${player.formatTime(n.time)}">${player.formatTime(n.time)}</span>
-        <span class="note-text-body">${escapeHtml(n.text)}</span>
-        <button class="note-del-btn" data-id="${n.id}" title="Delete note">✕</button>
-      </div>
-    `).join('');
-
-    streamNotesFeed.querySelectorAll('.note-time-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        const time = parseFloat(pill.getAttribute('data-time'));
-        player.seekTo(time, true);
-        player.play();
-        gestureEngine.showMomentaryFeedback(`⭐ Jumped to ${player.formatTime(time)}`, 'info');
-      });
-    });
-
-    streamNotesFeed.querySelectorAll('.note-del-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.getAttribute('data-id');
-        const notes = getStreamNotes().filter(n => n.id !== id);
-        saveStreamNotes(notes);
-        renderStreamNotes();
-      });
-    });
-  }
-
-  if (streamNoteForm && streamNoteInput) {
-    streamNoteForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const text = streamNoteInput.value.trim();
-      if (!text) return;
-
-      const time = Math.floor(player.getCurrentTime() || player.state.currentTime || 0);
-      const newNote = {
-        id: 'note_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-        videoId: player.videoId,
-        time: time,
-        text: text,
-        createdAt: Date.now()
-      };
-
-      const notes = getStreamNotes();
-      notes.push(newNote);
-      saveStreamNotes(notes);
-      streamNoteInput.value = '';
-      renderStreamNotes();
-
-      // Scroll to bottom of feed
-      setTimeout(() => {
-        if (streamNotesFeed) streamNotesFeed.scrollTop = streamNotesFeed.scrollHeight;
-      }, 50);
-
-      gestureEngine.showMomentaryFeedback(`📝 Note added @ ${player.formatTime(time)}`, 'info');
-    });
-  }
-
-  renderStreamNotes();
-
-  // 14. Player State Observer / UI Sync
+  // 13. Player State Observer / UI Sync
   player.subscribe((state) => {
     if (playBtnIcon) {
       playBtnIcon.innerHTML = state.isPlaying
@@ -1082,7 +900,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (timeCurrent) timeCurrent.textContent = player.formatTime(state.currentTime);
     if (timeDuration) timeDuration.textContent = player.formatTime(state.duration);
-    if (currentNoteTimestamp) currentNoteTimestamp.textContent = player.formatTime(state.currentTime);
 
     if (state.duration > 0 && !isTimelineDragging) {
       const pct = (state.currentTime / state.duration) * 100;
@@ -1147,12 +964,8 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'c':
         e.preventDefault();
-        if (e.shiftKey) {
-          toggleChatSidebar();
-        } else {
-          const enabled = player.toggleCaptions();
-          gestureEngine.showMomentaryFeedback(enabled ? '💬 Captions ON' : 'Captions OFF', 'info');
-        }
+        const enabled = player.toggleCaptions();
+        gestureEngine.showMomentaryFeedback(enabled ? '💬 Captions ON' : 'Captions OFF', 'info');
         break;
       case 'j':
       case ',':
