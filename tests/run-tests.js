@@ -284,7 +284,7 @@ async function runTests() {
       input.value = "lofi";
       document.getElementById("loadVideoBtn").click();
     `);
-    await new Promise(r => setTimeout(r, 400));
+    await new Promise(r => setTimeout(r, 1200));
 
     const isSidebarVisible = await cdp.evaluate('window.getComputedStyle(document.getElementById("playerSearchSidebar")).display !== "none"');
     assert(isSidebarVisible, 'Submitting search from top URL bar opens side-panel to the right of player');

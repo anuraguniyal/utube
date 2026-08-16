@@ -100,17 +100,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const recommendationsGrid = document.getElementById('recommendationsGrid') || document.getElementById('sampleVideosGrid');
   const categoryChipsBar = document.getElementById('categoryChipsBar');
 
-  // 3. Render YouTube Recommendations Feed
-  let activeCategory = 'All';
+  // 3. Render YouTube Recommendations Feed (100% Dynamic)
+  let activeCategory = 'Trending';
+  let dynamicRecommendations = [];
 
   function renderRecommendations() {
-    if (!recommendationsGrid || !window.YOUTUBE_RECOMMENDATIONS) return;
+    if (!recommendationsGrid) return;
 
-    const list = activeCategory === 'All'
-      ? window.YOUTUBE_RECOMMENDATIONS
-      : window.YOUTUBE_RECOMMENDATIONS.filter(v => v.category.toLowerCase().includes(activeCategory.toLowerCase()) || (activeCategory === 'Trending' && v.views.includes('B')));
+    if (!dynamicRecommendations || dynamicRecommendations.length === 0) {
+      recommendationsGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✨</div>
+          Fetching live YouTube discoveries...
+        </div>
+      `;
+      return;
+    }
 
-    recommendationsGrid.innerHTML = list.map(video => `
+    recommendationsGrid.innerHTML = dynamicRecommendations.map(video => `
       <div class="video-card ${video.id === player.videoId ? 'active' : ''}" data-video-id="${video.id}" title="${video.title}">
         <div class="video-thumb-wrap">
           <img class="video-thumb-img" src="${video.thumbnail}" alt="${video.title}" loading="lazy" />
@@ -139,6 +146,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  async function loadDynamicDiscoveries(category = 'Trending') {
+    if (typeof window.searchYouTubeVideos !== 'function') return;
+    try {
+      const q = category === 'All' ? 'trending 4k' : category;
+      const res = await window.searchYouTubeVideos(q);
+      if (Array.isArray(res) && res.length > 0) {
+        dynamicRecommendations = res;
+        renderRecommendations();
+      }
+    } catch (e) {}
+  }
+
   // Category Filter Chips
   if (categoryChipsBar) {
     categoryChipsBar.querySelectorAll('.topic-chip').forEach(chip => {
@@ -146,12 +165,13 @@ document.addEventListener('DOMContentLoaded', () => {
         categoryChipsBar.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         activeCategory = chip.getAttribute('data-category');
-        renderRecommendations();
+        loadDynamicDiscoveries(activeCategory);
       });
     });
   }
 
-  renderRecommendations();
+  // Load initial dynamic discoveries
+  loadDynamicDiscoveries('Trending');
 
   function updateActiveCard(activeId) {
     document.querySelectorAll('.video-card').forEach(c => {
@@ -168,16 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return videoMetadataCache.get(videoId);
     }
 
-    // 1. Check local recommended dataset
-    const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
-    const localMatch = dataset ? dataset.find(v => v.id === videoId) : null;
-    if (localMatch) {
-      const meta = { title: localMatch.title, description: localMatch.description, author: localMatch.channel };
-      videoMetadataCache.set(videoId, meta);
-      return meta;
-    }
-
-    // 2. Check YouTube Player API video data
+    // 1. Check YouTube Player API video data
     const ytData = player.getVideoData();
     if (ytData && ytData.title && ytData.video_id === videoId) {
       const meta = {
@@ -189,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return meta;
     }
 
-    // 3. Fetch from official YouTube oEmbed endpoint
+    // 2. Fetch from official YouTube oEmbed endpoint
     try {
       const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
       if (resp.ok) {
@@ -215,15 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const vidId = customVideoId || player.videoId;
     const titleEl = document.getElementById('currentVideoTitle');
     const descEl = document.getElementById('currentVideoDesc');
-
-    // Quick initial render
-    const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
-    const local = dataset ? dataset.find(v => v.id === vidId) : null;
-    if (local) {
-      if (titleEl) titleEl.textContent = local.title;
-      if (descEl) descEl.textContent = local.description;
-      return;
-    }
 
     if (titleEl) titleEl.textContent = 'Loading video title...';
 
@@ -790,9 +792,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (videoMetadataCache.has(videoId)) {
       return videoMetadataCache.get(videoId).title;
     }
-    const dataset = window.YOUTUBE_RECOMMENDATIONS || window.SAMPLE_VIDEOS;
-    const local = dataset ? dataset.find(v => v.id === videoId) : null;
-    if (local && local.title) return local.title;
 
     if (player.videoId === videoId) {
       const curEl = document.getElementById('currentVideoTitle');
