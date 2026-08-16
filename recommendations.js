@@ -525,18 +525,17 @@ async function searchYouTubeVideos(query) {
   // Prepare multi-instance live search endpoints for non-catalog queries
   const encodedQ = encodeURIComponent(q);
   const directEndpoints = [
+    `https://y.com.sb/api/v1/search?q=${encodedQ}&type=video`,
+    `https://invidious.flokinet.to/api/v1/search?q=${encodedQ}&type=video`,
     `https://invidious.jing.rocks/api/v1/search?q=${encodedQ}&type=video`,
     `https://inv.nadeko.net/api/v1/search?q=${encodedQ}&type=video`,
-    `https://yt.artemislena.eu/api/v1/search?q=${encodedQ}&type=video`,
-    `https://invidious.privacyredirect.com/api/v1/search?q=${encodedQ}&type=video`,
-    `https://pipedapi.kavin.rocks/search?q=${encodedQ}&filter=videos`,
-    `https://api.piped.privacydev.net/search?q=${encodedQ}&filter=videos`
+    `https://yt.artemislena.eu/api/v1/search?q=${encodedQ}&type=video`
   ];
 
   // CORS proxy wrapped endpoints
   const proxyEndpoints = [
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://invidious.jing.rocks/api/v1/search?q=${encodedQ}&type=video`)}`,
-    `https://corsproxy.io/?url=${encodeURIComponent(`https://inv.nadeko.net/api/v1/search?q=${encodedQ}&type=video`)}`
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://y.com.sb/api/v1/search?q=${encodedQ}&type=video`)}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(`https://invidious.flokinet.to/api/v1/search?q=${encodedQ}&type=video`)}`
   ];
 
   const allEndpoints = [...directEndpoints, ...proxyEndpoints];
