@@ -108,8 +108,10 @@ class CDPClient {
           const text = data.params.args.map(a => a.value || a.description || '').join(' ');
           this.consoleLogs.push({ type: data.params.type, text });
         } else if (data.method === 'Runtime.exceptionThrown') {
-          console.error('[Browser Exception]', data.params.exceptionDetails.text);
-          this.consoleLogs.push({ type: 'error', text: data.params.exceptionDetails.text });
+          const detail = data.params.exceptionDetails;
+          const desc = detail.exception ? detail.exception.description : detail.text;
+          console.error('[Browser Exception Details]', desc);
+          this.consoleLogs.push({ type: 'error', text: desc });
         }
       };
     });
@@ -271,12 +273,12 @@ async function runTests() {
     const markerCount = await cdp.evaluate('document.querySelectorAll("#bookmarksList .bookmark-row").length');
     assert(markerCount >= 1, 'Clicking Add Bookmark creates a new marker row in bookmarksList', `Found: ${markerCount}`);
 
-    // TEST 7: Search Functionality & Results Panel
-    console.log('\n--- Test Group 7: Universal Search & Results ---');
-    const searchPanel = await cdp.evaluate('!!document.getElementById("searchResultsPanel")');
-    assert(searchPanel, 'Search Results Panel exists in right column');
+    // TEST 7: Search Functionality & Side-by-Side Panel to Right of Video Player
+    console.log('\n--- Test Group 7: Universal Search & Player Side-Panel ---');
+    const searchSidebar = await cdp.evaluate('!!document.getElementById("playerSearchSidebar")');
+    assert(searchSidebar, 'Dedicated Search Results Side Panel (playerSearchSidebar) exists');
 
-    // Type a search query into urlInput and submit
+    // Type a search query into urlInput on top and submit
     await cdp.evaluate(`
       const input = document.getElementById("urlInput");
       input.value = "lofi";
@@ -284,39 +286,39 @@ async function runTests() {
     `);
     await new Promise(r => setTimeout(r, 400));
 
-    const searchCardsCount = await cdp.evaluate('document.querySelectorAll("#searchResultsList .search-result-card").length');
-    assert(searchCardsCount >= 1, 'Search for "lofi" populates search results cards', `Found: ${searchCardsCount} cards`);
+    const isSidebarVisible = await cdp.evaluate('window.getComputedStyle(document.getElementById("playerSearchSidebar")).display !== "none"');
+    assert(isSidebarVisible, 'Submitting search from top URL bar opens side-panel to the right of player');
 
-    const activeTabSearch = await cdp.evaluate('document.getElementById("tabBtnSearch").classList.contains("active")');
-    assert(activeTabSearch, 'Search submission automatically activates Search Results tab');
+    const searchCardsCount = await cdp.evaluate('document.querySelectorAll("#searchSidebarList .search-result-card").length');
+    assert(searchCardsCount >= 1, 'Search for "lofi" populates search results cards in player sidebar', `Found: ${searchCardsCount} cards`);
 
     // TEST 8: Bookmark from Search Result Card
-    console.log('\n--- Test Group 8: Save Bookmark from Search Result ---');
-    const firstBookmarkBtn = await cdp.evaluate('!!document.querySelector("#searchResultsList .search-bookmark-btn")');
+    console.log('\n--- Test Group 8: Save Bookmark from Search Result Card ---');
+    const firstBookmarkBtn = await cdp.evaluate('!!document.querySelector("#searchSidebarList .search-bookmark-btn")');
     assert(firstBookmarkBtn, 'Search result card contains Bookmark button');
 
     // Click bookmark button on first search result
-    await cdp.evaluate('document.querySelector("#searchResultsList .search-bookmark-btn").click()');
+    await cdp.evaluate('document.querySelector("#searchSidebarList .search-bookmark-btn").click()');
     await new Promise(r => setTimeout(r, 200));
 
-    const isBtnSaved = await cdp.evaluate('document.querySelector("#searchResultsList .search-bookmark-btn").classList.contains("saved")');
+    const isBtnSaved = await cdp.evaluate('document.querySelector("#searchSidebarList .search-bookmark-btn").classList.contains("saved")');
     assert(isBtnSaved, 'Clicking Search Bookmark button toggles it to saved state');
 
-    // Switch to Markers tab and verify the saved marker is listed
-    await cdp.evaluate('document.getElementById("tabBtnMarkers").click()');
-    await new Promise(r => setTimeout(r, 200));
-
+    // Verify the saved marker is listed in the main Bookmarks list below
     const markerRows = await cdp.evaluate('document.querySelectorAll("#bookmarksList .bookmark-row").length');
-    assert(markerRows >= 1, 'Saved search result appears in Markers & Bookmarks list', `Found: ${markerRows}`);
+    assert(markerRows >= 1, 'Saved search result appears in clean Bookmarks list below', `Found: ${markerRows}`);
 
     // TEST 9: Play Video from Search Result
-    console.log('\n--- Test Group 9: Play Video from Search Card ---');
-    await cdp.evaluate('document.getElementById("tabBtnSearch").click()');
-    await new Promise(r => setTimeout(r, 150));
-
-    await cdp.evaluate('document.querySelector("#searchResultsList .search-result-card").click()');
+    console.log('\n--- Test Group 9: Play Video from Search Card on Left Player ---');
+    await cdp.evaluate('document.querySelector("#searchSidebarList .search-result-card").click()');
     await new Promise(r => setTimeout(r, 300));
-    assert(true, 'Clicked search result card to load and play video on left');
+    assert(true, 'Clicked search result card to load and play video on left player');
+
+    // Close Search Side-Panel
+    await cdp.evaluate('document.getElementById("closeSearchSidebarBtn").click()');
+    await new Promise(r => setTimeout(r, 150));
+    const isSidebarClosed = await cdp.evaluate('window.getComputedStyle(document.getElementById("playerSearchSidebar")).display === "none"');
+    assert(isSidebarClosed, 'Clicking ✕ close button dismisses search side-panel');
 
     // TEST 10: Keyboard Shortcuts Execution
     console.log('\n--- Test Group 10: Keyboard Shortcuts Dispatch ---');

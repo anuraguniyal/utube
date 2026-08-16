@@ -60,21 +60,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const addBookmarkBtn = document.getElementById('addBookmarkBtn');
   const bookmarksList = document.getElementById('bookmarksList');
-
-  // Right Column Tabs & Search Elements
-  const tabBtnSearch = document.getElementById('tabBtnSearch');
-  const tabBtnMarkers = document.getElementById('tabBtnMarkers');
-  const searchResultsPanel = document.getElementById('searchResultsPanel');
-  const markersPanel = document.getElementById('markersPanel');
-  const markersHeaderActions = document.getElementById('markersHeaderActions');
-
-  const inlineSearchInput = document.getElementById('inlineSearchInput');
-  const inlineSearchBtn = document.getElementById('inlineSearchBtn');
-  const searchResultsList = document.getElementById('searchResultsList');
-  const searchResultCountBadge = document.getElementById('searchResultCountBadge');
+  const addBookmarkCardBtn = document.getElementById('addBookmarkCardBtn');
+  const copyCurrentTimeBtn = document.getElementById('copyCurrentTimeBtn');
+  const copyCurrentTimeIcon = document.getElementById('copyCurrentTimeIcon');
+  const filterBmAll = document.getElementById('filterBmAll');
+  const filterBmCurrent = document.getElementById('filterBmCurrent');
+  const bmCountAll = document.getElementById('bmCountAll');
+  const bmCountCurrent = document.getElementById('bmCountCurrent');
   const bmCountHeaderBadge = document.getElementById('bmCountHeaderBadge');
-  const searchQueryLabel = document.getElementById('searchQueryLabel');
-  const searchFeedbackStatus = document.getElementById('searchFeedbackStatus');
+
+  let activeBookmarkFilter = 'all'; // 'all' | 'current'
+
+  // Dedicated Search Sidebar (Right of Video Player) Elements
+  const playerSearchSidebar = document.getElementById('playerSearchSidebar');
+  const closeSearchSidebarBtn = document.getElementById('closeSearchSidebarBtn');
+  const sidebarSearchInput = document.getElementById('sidebarSearchInput');
+  const sidebarSearchBtn = document.getElementById('sidebarSearchBtn');
+  const searchSidebarList = document.getElementById('searchSidebarList');
+  const searchSidebarQuery = document.getElementById('searchSidebarQuery');
+  const searchSidebarCount = document.getElementById('searchSidebarCount');
 
   const sampleVideosGrid = document.getElementById('sampleVideosGrid');
   const helpModal = document.getElementById('helpModal');
@@ -391,16 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  if (inlineSearchBtn && inlineSearchInput) {
-    inlineSearchBtn.addEventListener('click', () => {
-      handleUniversalSearchOrLoad(inlineSearchInput.value);
-    });
-    inlineSearchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        handleUniversalSearchOrLoad(inlineSearchInput.value);
-      }
-    });
-  }
+
 
   if (pasteBtn && navigator.clipboard) {
     pasteBtn.addEventListener('click', async () => {
@@ -612,37 +607,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 12. Right Column Tabs & Search Results Controller
-  function switchRightTab(tabName) {
-    if (tabName === 'search') {
-      if (tabBtnSearch) tabBtnSearch.classList.add('active');
-      if (tabBtnMarkers) tabBtnMarkers.classList.remove('active');
-      if (searchResultsPanel) searchResultsPanel.style.display = 'flex';
-      if (markersPanel) markersPanel.style.display = 'none';
-      if (markersHeaderActions) markersHeaderActions.style.display = 'none';
-    } else {
-      if (tabBtnMarkers) tabBtnMarkers.classList.add('active');
-      if (tabBtnSearch) tabBtnSearch.classList.remove('active');
-      if (markersPanel) markersPanel.style.display = 'flex';
-      if (searchResultsPanel) searchResultsPanel.style.display = 'none';
-      if (markersHeaderActions) markersHeaderActions.style.display = 'inline-flex';
+  // 12. Dedicated Search Sidebar (Right of Video Player) Controller
+  function openSearchSidebar() {
+    if (playerSearchSidebar) {
+      playerSearchSidebar.style.setProperty('display', 'flex', 'important');
+      playerSearchSidebar.classList.add('open');
     }
   }
 
-  if (tabBtnSearch) tabBtnSearch.addEventListener('click', () => switchRightTab('search'));
-  if (tabBtnMarkers) tabBtnMarkers.addEventListener('click', () => switchRightTab('markers'));
+  function closeSearchSidebar() {
+    if (playerSearchSidebar) {
+      playerSearchSidebar.style.setProperty('display', 'none', 'important');
+      playerSearchSidebar.classList.remove('open');
+    }
+  }
 
-  let currentSearchResults = [];
+  window.openSearchSidebar = openSearchSidebar;
+  window.closeSearchSidebar = closeSearchSidebar;
+  window.executeSearch = executeSearch;
+
+  if (closeSearchSidebarBtn) {
+    closeSearchSidebarBtn.addEventListener('click', closeSearchSidebar);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && playerSearchSidebar && playerSearchSidebar.style.display !== 'none') {
+      closeSearchSidebar();
+    }
+  });
 
   async function executeSearch(query) {
     const q = (query || '').trim();
     if (!q) return;
 
-    switchRightTab('search');
-    if (searchQueryLabel) searchQueryLabel.textContent = `Searching for "${q}"...`;
-    if (searchFeedbackStatus) searchFeedbackStatus.textContent = '⏳ Loading...';
-    if (searchResultsList) {
-      searchResultsList.innerHTML = `
+    openSearchSidebar();
+    if (searchSidebarQuery) searchSidebarQuery.textContent = `"${q}"`;
+    if (searchSidebarCount) searchSidebarCount.textContent = '...';
+    if (sidebarSearchInput) sidebarSearchInput.value = q;
+
+    if (searchSidebarList) {
+      searchSidebarList.innerHTML = `
         <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.825rem;">
           <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔍</div>
           Searching for "<strong>${q}</strong>"...
@@ -655,25 +659,22 @@ document.addEventListener('DOMContentLoaded', () => {
         ? await window.searchYouTubeVideos(q)
         : (window.YOUTUBE_RECOMMENDATIONS || []).slice(0, 10);
 
-      currentSearchResults = results;
       renderSearchResults(results, q);
     } catch (err) {
       console.warn('Search error:', err);
       const fallback = (window.YOUTUBE_RECOMMENDATIONS || []).slice(0, 10);
-      currentSearchResults = fallback;
       renderSearchResults(fallback, q);
     }
   }
 
   function renderSearchResults(results, query = '') {
-    if (!searchResultsList) return;
+    if (!searchSidebarList) return;
     const list = Array.isArray(results) ? results : [];
-    if (searchResultCountBadge) searchResultCountBadge.textContent = list.length;
-    if (searchQueryLabel) searchQueryLabel.textContent = query ? `Results for "${query}":` : 'Top Recommended Videos:';
-    if (searchFeedbackStatus) searchFeedbackStatus.textContent = `${list.length} found`;
+    if (searchSidebarCount) searchSidebarCount.textContent = list.length;
+    if (searchSidebarQuery) searchSidebarQuery.textContent = query ? `"${query}"` : 'Top Recommendations';
 
     if (list.length === 0) {
-      searchResultsList.innerHTML = `
+      searchSidebarList.innerHTML = `
         <div style="text-align: center; padding: 2rem; color: var(--text-dim); font-size: 0.8rem;">
           No videos found for "<strong>${query}</strong>". Try different keywords or paste a direct YouTube link.
         </div>
@@ -684,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookmarks = player.state.bookmarks || [];
     const isBookmarked = (vidId) => bookmarks.some(b => b && b.videoId === vidId);
 
-    searchResultsList.innerHTML = list.map(item => {
+    searchSidebarList.innerHTML = list.map(item => {
       const isCurrent = player.videoId === item.id;
       const activeClass = isCurrent ? 'active-playing' : '';
       const saved = isBookmarked(item.id);
@@ -716,14 +717,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
 
     // Wire Card Clicks & Play Button Clicks to play video on left
-    searchResultsList.querySelectorAll('.search-result-card').forEach(card => {
+    searchSidebarList.querySelectorAll('.search-result-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.search-bookmark-btn')) return; // Bookmark button handles its own click
+        if (e.target.closest('.search-bookmark-btn')) return;
         const vidId = card.getAttribute('data-video-id');
         if (vidId) {
           loadNewVideo(vidId);
-          // Highlight active card
-          searchResultsList.querySelectorAll('.search-result-card').forEach(c => c.classList.remove('active-playing'));
+          searchSidebarList.querySelectorAll('.search-result-card').forEach(c => c.classList.remove('active-playing'));
           card.classList.add('active-playing');
           gestureEngine.showMomentaryFeedback(`▶ Loaded video on left`, 'info');
         }
@@ -731,19 +731,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Wire Bookmark Button Clicks on each search result
-    searchResultsList.querySelectorAll('.search-bookmark-btn').forEach(btn => {
+    searchSidebarList.querySelectorAll('.search-bookmark-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const vidId = btn.getAttribute('data-video-id');
         const title = decodeURIComponent(btn.getAttribute('data-title') || '');
         if (!vidId) return;
 
-        // Check if already bookmarked
         const already = player.state.bookmarks && player.state.bookmarks.some(b => b.videoId === vidId);
         if (!already) {
           player.addBookmark(`Saved Search Result`, title, vidId, 0);
           btn.classList.add('saved');
           btn.textContent = '✓ Saved';
+          btn.style.background = 'rgba(16,185,129,0.18)';
+          btn.style.borderColor = 'rgba(16,185,129,0.4)';
+          btn.style.color = '#34d399';
           renderBookmarks();
           gestureEngine.showMomentaryFeedback(`⭐ Saved "${title.slice(0, 24)}..." to Bookmarks!`, 'info');
         } else {
@@ -753,22 +755,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initial search results population
-  if (typeof window.searchYouTubeVideos === 'function') {
-    executeSearch('Trending');
+  if (sidebarSearchBtn && sidebarSearchInput) {
+    sidebarSearchBtn.addEventListener('click', () => {
+      handleUniversalSearchOrLoad(sidebarSearchInput.value);
+    });
+    sidebarSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        handleUniversalSearchOrLoad(sidebarSearchInput.value);
+      }
+    });
   }
 
   // 13. Bookmarks & Markers
-  const copyCurrentTimeBtn = document.getElementById('copyCurrentTimeBtn');
-  const copyCurrentTimeIcon = document.getElementById('copyCurrentTimeIcon');
-  const addBookmarkCardBtn = document.getElementById('addBookmarkCardBtn');
-  const filterBmAll = document.getElementById('filterBmAll');
-  const filterBmCurrent = document.getElementById('filterBmCurrent');
-  const bmCountAll = document.getElementById('bmCountAll');
-  const bmCountCurrent = document.getElementById('bmCountCurrent');
-
-  let activeBookmarkFilter = 'all'; // 'all' | 'current'
-
   if (filterBmAll && filterBmCurrent) {
     filterBmAll.addEventListener('click', () => {
       activeBookmarkFilter = 'all';
@@ -860,12 +858,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bmCountHeaderBadge) bmCountHeaderBadge.textContent = allBookmarks.length;
 
     // Refresh Bookmark states on visible search result cards
-    if (searchResultsList) {
-      searchResultsList.querySelectorAll('.search-bookmark-btn').forEach(btn => {
+    if (searchSidebarList) {
+      searchSidebarList.querySelectorAll('.search-bookmark-btn').forEach(btn => {
         const vidId = btn.getAttribute('data-video-id');
         const isSaved = allBookmarks.some(b => b && b.videoId === vidId);
         btn.classList.toggle('saved', isSaved);
         btn.textContent = isSaved ? '✓ Saved' : '⭐ Bookmark';
+        if (isSaved) {
+          btn.style.background = 'rgba(16,185,129,0.18)';
+          btn.style.borderColor = 'rgba(16,185,129,0.4)';
+          btn.style.color = '#34d399';
+        } else {
+          btn.style.background = 'rgba(250,204,21,0.12)';
+          btn.style.borderColor = 'rgba(250,204,21,0.3)';
+          btn.style.color = '#fde047';
+        }
       });
     }
 

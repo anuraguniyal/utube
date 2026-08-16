@@ -1,7 +1,7 @@
 /**
- * UTUBE Headless Screenshot Capturer
- * Usage: node tests/capture-screenshot.js [filename] [action]
- * Example: node tests/capture-screenshot.js search.png "executeSearch('lofi')"
+ * UTUBE Static Headless Screenshot Capturer
+ * Reads instructions from tests/commands.js (no dynamic CLI arguments required).
+ * Usage: node tests/capture-screenshot.js
  */
 
 const http = require('http');
@@ -11,9 +11,20 @@ const { spawn } = require('child_process');
 
 const PORT = 8099;
 const ROOT_DIR = path.resolve(__dirname, '..');
-const outputFile = process.argv[2] || '/tmp/utube-screenshot.png';
-const evalAction = process.argv[3] || null;
-const outputPath = path.isAbsolute(outputFile) ? outputFile : path.join('/tmp', outputFile);
+const COMMANDS_FILE = path.join(__dirname, 'commands.js');
+
+function loadCommands() {
+  try {
+    delete require.cache[require.resolve(COMMANDS_FILE)];
+    return require(COMMANDS_FILE);
+  } catch (e) {
+    return {
+      outputPath: '/tmp/utube-screenshot.png',
+      windowSize: { width: 1600, height: 950 },
+      async run() {}
+    };
+  }
+}
 
 function startServer() {
   return new Promise((resolve) => {
@@ -43,6 +54,11 @@ function startServer() {
 }
 
 async function capture() {
+  const config = loadCommands();
+  const outputPath = config.outputPath || '/tmp/utube-screenshot.png';
+  const width = (config.windowSize && config.windowSize.width) || 1600;
+  const height = (config.windowSize && config.windowSize.height) || 950;
+
   const server = await startServer();
   console.log(`[Server] Running at http://localhost:${PORT}`);
 
@@ -53,7 +69,7 @@ async function capture() {
     '--disable-gpu',
     '--disable-dev-shm-usage',
     '--remote-debugging-port=9245',
-    '--window-size=1280,800',
+    `--window-size=${width},${height}`,
     'about:blank'
   ]);
 
@@ -86,14 +102,18 @@ async function capture() {
       });
     }
 
+    const cdp = {
+      send,
+      evaluate: (expr) => send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true })
+    };
+
     await send('Page.enable');
     await send('Page.navigate', { url: `http://localhost:${PORT}` });
     await new Promise(r => setTimeout(r, 1200));
 
-    if (evalAction) {
-      console.log(`[Action] Evaluating: ${evalAction}`);
-      await send('Runtime.evaluate', { expression: evalAction, awaitPromise: true });
-      await new Promise(r => setTimeout(r, 600));
+    if (typeof config.run === 'function') {
+      console.log(`[Commands] Executing actions from tests/commands.js...`);
+      await config.run(cdp);
     }
 
     const ss = await send('Page.captureScreenshot', { format: 'png' });
