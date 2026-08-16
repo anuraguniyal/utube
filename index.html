@@ -59,7 +59,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.1</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.2</div>
     </div>
   </header>
 
@@ -317,21 +317,29 @@
             <div class="chat-popout-card">
               <div class="chat-popout-header">
                 <span class="chat-status-dot"></span>
-                <span style="font-size: 0.775rem; font-weight: 700; color: #fff;">YouTube Official Live Chat</span>
+                <span style="font-size: 0.775rem; font-weight: 700; color: #fff;">YouTube Companion Windows</span>
               </div>
-              <p style="font-size: 0.725rem; color: var(--text-dim); margin: 0.25rem 0 0.5rem 0; line-height: 1.35;">
-                Open YouTube's official stream chat & replay popup beside your player:
+              <p style="font-size: 0.7rem; color: var(--text-dim); margin: 0.25rem 0 0.5rem 0; line-height: 1.35;">
+                Open dedicated chat/comments in a companion popup beside the player:
               </p>
-              <button id="openPopoutChatDirectBtn" class="btn-primary chat-launch-btn">
-                <span>⤢ Launch Dedicated Chat Window</span>
-              </button>
+              <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                <button id="openPopoutChatDirectBtn" class="btn-primary chat-launch-btn" title="Open YouTube Live Chat (For live streams)">
+                  <span>🔴 Launch Live Stream Chat</span>
+                </button>
+                <button id="openPopoutCommentsBtn" class="btn-ghost chat-launch-btn" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-subtle);" title="Open YouTube Video Comments (For standard videos)">
+                  <span>💬 Open Video Comments</span>
+                </button>
+              </div>
+              <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 0.4rem; line-height: 1.25;">
+                💡 <em>Live Chat requires a live stream or broadcast recording. For pre-recorded videos, use Video Comments.</em>
+              </div>
             </div>
 
             <!-- Quick Live Streams Preset Row -->
             <div class="chat-presets-section">
-              <span class="chat-presets-label">🔴 24/7 Active Live Streams:</span>
+              <span class="chat-presets-label">🔴 Test with 24/7 Live Stream + Chat:</span>
               <div class="chat-presets-chips">
-                <button class="chat-preset-chip" data-vid="jfKfPfyJRdk">🎧 Lofi Girl</button>
+                <button class="chat-preset-chip" data-vid="jfKfPfyJRdk">🎧 Lofi Girl Live</button>
                 <button class="chat-preset-chip" data-vid="21X5lGlDOfg">🚀 NASA Space</button>
                 <button class="chat-preset-chip" data-vid="5yx6BWlEVcY">🎵 ChillHop</button>
               </div>

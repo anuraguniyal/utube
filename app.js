@@ -944,12 +944,25 @@ document.addEventListener('DOMContentLoaded', () => {
     gestureEngine.showMomentaryFeedback('💬 Opened Floating YouTube Live Chat', 'info');
   }
 
+  const openPopoutCommentsBtn = document.getElementById('openPopoutCommentsBtn');
+
+  function openPopoutComments() {
+    const vid = player.videoId || 'LXb3EKWsInQ';
+    const url = `https://www.youtube.com/watch?v=${encodeURIComponent(vid)}`;
+    window.open(url, `YouTubeComments_${vid}`, 'width=500,height=700,resizable=yes,scrollbars=yes');
+    gestureEngine.showMomentaryFeedback('💬 Opened YouTube Video Comments Window', 'info');
+  }
+
   if (popoutChatBtn) {
     popoutChatBtn.addEventListener('click', openPopoutChat);
   }
 
   if (openPopoutChatDirectBtn) {
     openPopoutChatDirectBtn.addEventListener('click', openPopoutChat);
+  }
+
+  if (openPopoutCommentsBtn) {
+    openPopoutCommentsBtn.addEventListener('click', openPopoutComments);
   }
 
   // Quick Live Stream Chips
