@@ -968,14 +968,18 @@ document.addEventListener('DOMContentLoaded', () => {
         gestureEngine.showMomentaryFeedback(enabled ? '💬 Captions ON' : 'Captions OFF', 'info');
         break;
       case 'j':
+      case ',':
+      case '<':
         e.preventDefault();
         player.stepFrame(-1);
-        gestureEngine.showMomentaryFeedback('◀ Frame Back (J)', 'info');
+        gestureEngine.showMomentaryFeedback('◀ Frame Back ( , / J )', 'info');
         break;
       case 'k':
+      case '.':
+      case '>':
         e.preventDefault();
         player.stepFrame(1);
-        gestureEngine.showMomentaryFeedback('Frame Forward ▶ (K)', 'info');
+        gestureEngine.showMomentaryFeedback('Frame Forward ▶ ( . / K )', 'info');
         break;
       case 'l':
         e.preventDefault();
@@ -1022,14 +1026,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         player.setSpeed(Math.min(8.0, player.getPlaybackRate() + 0.25));
         gestureEngine.showMomentaryFeedback(`Speed: ${player.getPlaybackRate()}x`, 'info');
-        break;
-      case ',':
-        e.preventDefault();
-        player.stepFrame(-1);
-        break;
-      case '.':
-        e.preventDefault();
-        player.stepFrame(1);
         break;
       case 'r':
         e.preventDefault();
