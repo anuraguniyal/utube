@@ -59,16 +59,17 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v2.9</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.0</div>
     </div>
   </header>
 
   <!-- Main Container -->
   <main class="main-content">
 
-    <!-- Player Theater Container with Interactive Drag-to-Resize -->
+    <!-- Player Theater Container with Interactive Drag-to-Resize & Side-by-Side Live Chat -->
     <div class="player-theater-outer" id="playerTheaterOuter">
-      <div class="player-theater-wrapper" id="playerTheaterWrapper">
+      <div class="player-theater-stage" id="playerTheaterStage">
+        <div class="player-theater-wrapper" id="playerTheaterWrapper">
         
         <!-- Live Resize Overlay Badge -->
         <div id="resizeBadge" class="resize-badge">
@@ -263,6 +264,10 @@
                 <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100" />
               </div>
 
+              <button id="toggleChatBtn" class="btn-icon" title="Toggle Stream Chat on Right (Shift + C)">
+                <span style="font-size: 0.95rem;">💬</span>
+              </button>
+
               <button id="fullscreenBtn" class="btn-icon" title="Fullscreen (F)">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
@@ -293,8 +298,40 @@
           </svg>
         </div>
 
-      </div>
-    </div>
+        </div>
+
+        <!-- Live / Stream Chat Sidebar (Side by Side on Right of Video) -->
+        <div class="theater-chat-sidebar" id="theaterChatSidebar">
+          <div class="chat-sidebar-header">
+            <div class="chat-sidebar-title">
+              <span>💬 Stream Chat</span>
+            </div>
+            <div class="chat-sidebar-actions">
+              <button id="popoutChatBtn" class="chat-header-btn" title="Open chat in popup window">⤢ Pop Out</button>
+              <button id="refreshChatBtn" class="chat-header-btn" title="Reload stream chat">⟳</button>
+              <button id="closeChatSidebarBtn" class="chat-header-btn" title="Hide chat sidebar">✕</button>
+            </div>
+          </div>
+          
+          <div class="chat-sidebar-body">
+            <iframe id="liveChatIframe" class="live-chat-iframe" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            <div id="chatFallbackMsg" class="chat-fallback-overlay" style="display: none;">
+              <div class="chat-fallback-card">
+                <div style="font-size: 1.5rem; margin-bottom: 0.4rem;">💬</div>
+                <div style="font-weight: 700; font-size: 0.85rem; color: #fff; margin-bottom: 0.3rem;">Live Stream Chat</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.4;">
+                  If this video is not a live stream or if YouTube restricts embedding on this domain, open the standalone stream chat window:
+                </div>
+                <button id="openPopoutChatDirectBtn" class="btn-primary" style="font-size: 0.75rem; padding: 0.35rem 0.85rem; border-radius: var(--radius-full);">
+                  <span>⤢ Open Chat Window</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- /player-theater-stage -->
+    </div> <!-- /player-theater-outer -->
 
     <!-- Active Video Details & YouTube Recommendations Feed -->
     <div class="dashboard-grid">
@@ -337,72 +374,32 @@
         </div>
       </div>
 
-      <!-- Right Column: Saved Timestamp Markers & Live/Replay Chat -->
-      <div class="card right-sidebar-card">
-        
-        <!-- Sidebar Navigation Tabs -->
-        <div class="sidebar-tab-switcher">
-          <button id="tabBtnMarkers" class="sidebar-tab-btn active">
+      <!-- Right Column: Saved Timestamp Markers & Bookmarks -->
+      <div class="card">
+        <div class="card-header" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; box-sizing: border-box;">
+          <h3 class="card-title" style="font-size: 0.9rem; font-weight: 700; white-space: nowrap; margin: 0; display: inline-flex; align-items: center; gap: 4px;">
             <span>📌 Markers</span>
-          </button>
-          <button id="tabBtnLiveChat" class="sidebar-tab-btn">
-            <span>💬 Live Chat</span>
-          </button>
-        </div>
-
-        <!-- Panel 1: Markers Panel -->
-        <div id="sidebarPanelMarkers" class="sidebar-panel active">
-          <div class="card-header" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; box-sizing: border-box; margin-bottom: 0.5rem;">
-            <h3 class="card-title" style="font-size: 0.9rem; font-weight: 700; white-space: nowrap; margin: 0; display: inline-flex; align-items: center; gap: 4px;">
-              <span>Saved Markers</span>
-            </h3>
-            <div class="card-header-actions" style="display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; flex-shrink: 0;">
-              <button id="addBookmarkCardBtn" class="btn-primary" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 9px; font-size: 0.725rem; font-weight: 700; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; box-shadow: none;" title="Mark current video timestamp">
-                <span>⭐ Mark Time</span>
-              </button>
-              <button id="copyCurrentTimeBtn" class="btn-ghost" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 8px; font-size: 0.725rem; font-weight: 600; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; background: rgba(255, 255, 255, 0.06);" title="Copy YouTube link with current timestamp">
-                <span id="copyCurrentTimeIcon" style="margin-right: 2px;">🔗</span>
-                <span>Copy Link</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Filter Sub-Bar: All Videos vs This Video -->
-          <div class="bookmark-filter-bar" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 3px; background: rgba(0, 0, 0, 0.25); border-radius: 9999px; border: 1px solid var(--border-subtle); margin-bottom: 6px;">
-            <button id="filterBmAll" class="bm-filter-btn active" style="flex: 1; text-align: center; white-space: nowrap;">All (<span id="bmCountAll">0</span>)</button>
-            <button id="filterBmCurrent" class="bm-filter-btn" style="flex: 1; text-align: center; white-space: nowrap;">Current Video (<span id="bmCountCurrent">0</span>)</button>
-          </div>
-
-          <div id="bookmarksList" class="bookmarks-list">
-            <!-- Populated dynamically -->
+          </h3>
+          <div class="card-header-actions" style="display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; flex-shrink: 0;">
+            <button id="addBookmarkCardBtn" class="btn-primary" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 9px; font-size: 0.725rem; font-weight: 700; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; box-shadow: none;" title="Mark current video timestamp">
+              <span>⭐ Mark Time</span>
+            </button>
+            <button id="copyCurrentTimeBtn" class="btn-ghost" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 8px; font-size: 0.725rem; font-weight: 600; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; background: rgba(255, 255, 255, 0.06);" title="Copy YouTube link with current timestamp">
+              <span id="copyCurrentTimeIcon" style="margin-right: 2px;">🔗</span>
+              <span>Copy Link</span>
+            </button>
           </div>
         </div>
 
-        <!-- Panel 2: Live / Replay Chat Panel -->
-        <div id="sidebarPanelLiveChat" class="sidebar-panel" style="display: none;">
-          <div class="card-header" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; box-sizing: border-box; margin-bottom: 0.5rem;">
-            <h3 class="card-title" style="font-size: 0.9rem; font-weight: 700; white-space: nowrap; margin: 0; display: inline-flex; align-items: center; gap: 4px;">
-              <span>💬 Stream Chat</span>
-            </h3>
-            <div class="card-header-actions" style="display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; flex-shrink: 0;">
-              <button id="popoutChatBtn" class="btn-ghost" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 8px; font-size: 0.725rem; font-weight: 600; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; background: rgba(255, 255, 255, 0.06);" title="Pop out live chat in separate window">
-                <span>⤢ Pop Out</span>
-              </button>
-              <button id="refreshChatBtn" class="btn-ghost" style="display: inline-flex; flex-direction: row; align-items: center; justify-content: center; height: 26px; padding: 0 8px; font-size: 0.725rem; font-weight: 600; border-radius: 9999px; white-space: nowrap; line-height: 1; cursor: pointer; background: rgba(255, 255, 255, 0.06);" title="Reload stream chat">
-                <span>⟳</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="live-chat-container">
-            <iframe id="liveChatIframe" class="live-chat-iframe" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-          </div>
-
-          <div class="chat-helper-tip">
-            <span>💡 Streams with live chat or replay chat will automatically display here. Use <strong>Pop Out</strong> for a detached floating chat window.</span>
-          </div>
+        <!-- Filter Sub-Bar: All Videos vs This Video -->
+        <div class="bookmark-filter-bar" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 3px; background: rgba(0, 0, 0, 0.25); border-radius: 9999px; border: 1px solid var(--border-subtle); margin-bottom: 4px;">
+          <button id="filterBmAll" class="bm-filter-btn active" style="flex: 1; text-align: center; white-space: nowrap;">All (<span id="bmCountAll">0</span>)</button>
+          <button id="filterBmCurrent" class="bm-filter-btn" style="flex: 1; text-align: center; white-space: nowrap;">Current Video (<span id="bmCountCurrent">0</span>)</button>
         </div>
 
+        <div id="bookmarksList" class="bookmarks-list">
+          <!-- Populated dynamically -->
+        </div>
       </div>
 
     </div>

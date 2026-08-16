@@ -889,14 +889,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderBookmarks();
 
-  // 13. Sidebar Tabs & Live / Stream Chat Controller
-  const tabBtnMarkers = document.getElementById('tabBtnMarkers');
-  const tabBtnLiveChat = document.getElementById('tabBtnLiveChat');
-  const sidebarPanelMarkers = document.getElementById('sidebarPanelMarkers');
-  const sidebarPanelLiveChat = document.getElementById('sidebarPanelLiveChat');
+  // 13. Theater Side-by-Side Stream Chat Controller
+  const toggleChatBtn = document.getElementById('toggleChatBtn');
+  const theaterChatSidebar = document.getElementById('theaterChatSidebar');
+  const closeChatSidebarBtn = document.getElementById('closeChatSidebarBtn');
   const liveChatIframe = document.getElementById('liveChatIframe');
   const popoutChatBtn = document.getElementById('popoutChatBtn');
   const refreshChatBtn = document.getElementById('refreshChatBtn');
+  const openPopoutChatDirectBtn = document.getElementById('openPopoutChatDirectBtn');
+  const chatFallbackMsg = document.getElementById('chatFallbackMsg');
+
+  let isChatSidebarOpen = true;
+
+  function toggleChatSidebar(forceState = null) {
+    if (!theaterChatSidebar) return;
+    if (forceState !== null) {
+      isChatSidebarOpen = forceState;
+    } else {
+      isChatSidebarOpen = !isChatSidebarOpen;
+    }
+
+    theaterChatSidebar.classList.toggle('hidden', !isChatSidebarOpen);
+    if (toggleChatBtn) {
+      toggleChatBtn.classList.toggle('active', isChatSidebarOpen);
+    }
+
+    if (isChatSidebarOpen) {
+      updateLiveChat(player.videoId);
+      gestureEngine.showMomentaryFeedback('💬 Stream Chat ON (Right Side)', 'info');
+    } else {
+      gestureEngine.showMomentaryFeedback('Stream Chat Hidden', 'info');
+    }
+  }
+
+  if (toggleChatBtn) {
+    toggleChatBtn.addEventListener('click', () => toggleChatSidebar());
+  }
+
+  if (closeChatSidebarBtn) {
+    closeChatSidebarBtn.addEventListener('click', () => toggleChatSidebar(false));
+  }
 
   function getLiveChatEmbedUrl(videoId) {
     const vid = videoId || player.videoId || 'LXb3EKWsInQ';
@@ -904,39 +936,35 @@ document.addEventListener('DOMContentLoaded', () => {
     return `https://www.youtube.com/live_chat?v=${encodeURIComponent(vid)}&embed_domain=${encodeURIComponent(domain)}`;
   }
 
+  function getDirectLiveChatUrl(videoId) {
+    const vid = videoId || player.videoId || 'LXb3EKWsInQ';
+    return `https://www.youtube.com/live_chat?v=${encodeURIComponent(vid)}`;
+  }
+
   function updateLiveChat(videoId) {
     if (!liveChatIframe) return;
-    const url = getLiveChatEmbedUrl(videoId);
-    if (liveChatIframe.getAttribute('data-loaded-vid') !== videoId) {
+    if (chatFallbackMsg) chatFallbackMsg.style.display = 'none';
+
+    const vid = videoId || player.videoId;
+    const url = getLiveChatEmbedUrl(vid);
+    if (liveChatIframe.getAttribute('data-loaded-vid') !== vid) {
       liveChatIframe.src = url;
-      liveChatIframe.setAttribute('data-loaded-vid', videoId);
+      liveChatIframe.setAttribute('data-loaded-vid', vid);
     }
   }
 
-  function switchSidebarTab(tabName) {
-    if (tabName === 'markers') {
-      if (tabBtnMarkers) tabBtnMarkers.classList.add('active');
-      if (tabBtnLiveChat) tabBtnLiveChat.classList.remove('active');
-      if (sidebarPanelMarkers) sidebarPanelMarkers.style.display = 'block';
-      if (sidebarPanelLiveChat) sidebarPanelLiveChat.style.display = 'none';
-    } else if (tabName === 'chat') {
-      if (tabBtnLiveChat) tabBtnLiveChat.classList.add('active');
-      if (tabBtnMarkers) tabBtnMarkers.classList.remove('active');
-      if (sidebarPanelLiveChat) sidebarPanelLiveChat.style.display = 'block';
-      if (sidebarPanelMarkers) sidebarPanelMarkers.style.display = 'none';
-      updateLiveChat(player.videoId);
-    }
+  function openPopoutChat() {
+    const url = getDirectLiveChatUrl(player.videoId);
+    window.open(url, 'YouTubeLiveChat', 'width=420,height=650,resizable=yes,scrollbars=yes,menubar=no,toolbar=no');
+    gestureEngine.showMomentaryFeedback('💬 Opened Floating Stream Chat Window', 'info');
   }
-
-  if (tabBtnMarkers) tabBtnMarkers.addEventListener('click', () => switchSidebarTab('markers'));
-  if (tabBtnLiveChat) tabBtnLiveChat.addEventListener('click', () => switchSidebarTab('chat'));
 
   if (popoutChatBtn) {
-    popoutChatBtn.addEventListener('click', () => {
-      const url = getLiveChatEmbedUrl(player.videoId);
-      window.open(url, 'YouTubeLiveChat', 'width=420,height=650,resizable=yes,scrollbars=yes,menubar=no,toolbar=no');
-      gestureEngine.showMomentaryFeedback('💬 Popped Out Live Chat Window', 'info');
-    });
+    popoutChatBtn.addEventListener('click', openPopoutChat);
+  }
+
+  if (openPopoutChatDirectBtn) {
+    openPopoutChatDirectBtn.addEventListener('click', openPopoutChat);
   }
 
   if (refreshChatBtn) {
@@ -1024,8 +1052,12 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'c':
         e.preventDefault();
-        const enabled = player.toggleCaptions();
-        gestureEngine.showMomentaryFeedback(enabled ? '💬 Captions ON' : 'Captions OFF', 'info');
+        if (e.shiftKey) {
+          toggleChatSidebar();
+        } else {
+          const enabled = player.toggleCaptions();
+          gestureEngine.showMomentaryFeedback(enabled ? '💬 Captions ON' : 'Captions OFF', 'info');
+        }
         break;
       case 'j':
       case ',':
