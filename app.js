@@ -1035,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="bm-group-header" style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);width:100%;box-sizing:border-box;">
             <div class="bm-group-title" title="${group.title}" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:0.775rem;font-weight:700;color:#fff;min-width:0;flex:1;overflow:hidden;">
               <span>▶</span>
-              <span class="bm-group-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#93c5fd;flex:1;min-width:0;">Current Video</span>
+              <span class="bm-group-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#93c5fd;flex:1;min-width:0;">${group.title ? `${group.title} (Current Video)` : 'Current Video'}</span>
               <span class="bm-count-pill" style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;background:rgba(255,255,255,0.1);color:var(--text-dim);padding:1px 6px;border-radius:9999px;flex-shrink:0;">${group.items.length}</span>
             </div>
           </div>

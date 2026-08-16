@@ -8,8 +8,8 @@ module.exports = {
   async run(cdp) {
     // Wait for initial page hydration
     await new Promise(r => setTimeout(r, 800));
-    // Click Snapshot button
-    await cdp.evaluate(`document.getElementById("screenshotFrameBtn").click()`);
+    // Click Add Bookmark button
+    await cdp.evaluate(`document.getElementById("addBookmarkCardBtn").click()`);
     await new Promise(r => setTimeout(r, 800));
   }
 };
