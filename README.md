@@ -68,8 +68,11 @@ Touch or click-and-drag directly on the video viewport for continuous gesture na
   - **Language Selector**: Choose between English, Spanish, French, German, Japanese, Chinese, or Auto-Generated tracks.
   - **Font Size Customization**: Small, Normal, Large, and XL font sizing.
 
-### 7. 📌 Saved Timestamp Markers with 1-Click Copy URL
-- **Timestamp Bookmarks**: Mark important video timestamps with persistent browser LocalStorage support.
+### 7. 📌 Saved Timestamp Markers & Yellow Timeline Dots
+- **Yellow Dots on Timeline**: Saved bookmarks are displayed as bright yellow glowing dots positioned directly along the scrubber timeline.
+- **1-Click Jump**: Click any yellow dot on the timeline to instantly seek to that bookmark.
+- **Hover Timestamp Tooltip**: Hovering over a dot reveals a popup displaying the marker's title and exact timestamp.
+- **Persistent Storage**: Markers are saved to browser `localStorage` across page refreshes.
 - **Copy Timestamp Link (`🔗`)**: Dedicated button on each marker to copy shareable YouTube timestamp URLs (e.g. `https://youtu.be/LXb3EKWsInQ?t=125`) directly to clipboard.
 - **Copy Time URL Header Button**: 1-click button in the markers panel to copy a link at the player's current playhead.
 

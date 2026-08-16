@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const timelineContainer = document.getElementById('timelineContainer');
   const timelineProgress = document.getElementById('timelineProgress');
   const timelineThumb = document.getElementById('timelineThumb');
+  const timelineMarkersTrack = document.getElementById('timelineMarkersTrack');
   const timelineFramePreview = document.getElementById('timelineFramePreview');
   const previewThumbImg = document.getElementById('previewThumbImg');
   const previewThumbDelta = document.getElementById('previewThumbDelta');
@@ -670,6 +671,38 @@ document.addEventListener('DOMContentLoaded', () => {
         gestureEngine.showMomentaryFeedback('Marker removed', 'info');
       });
     });
+
+    renderTimelineMarkers();
+  }
+
+  function renderTimelineMarkers() {
+    if (!timelineMarkersTrack) return;
+    const dur = player.getDuration() || player.state.duration || 0;
+    const currentVideoBookmarks = player.state.bookmarks.filter(b => b.videoId === player.videoId);
+
+    if (dur <= 0 || currentVideoBookmarks.length === 0) {
+      timelineMarkersTrack.innerHTML = '';
+      return;
+    }
+
+    timelineMarkersTrack.innerHTML = currentVideoBookmarks.map(bm => {
+      const pct = Math.max(0, Math.min(100, (bm.time / dur) * 100));
+      return `
+        <div class="timeline-marker-dot" style="left: ${pct}%;" data-time="${bm.time}" title="${bm.label}">
+          <div class="marker-hover-tip">⭐ ${bm.label} (${player.formatTime(bm.time)})</div>
+        </div>
+      `;
+    }).join('');
+
+    timelineMarkersTrack.querySelectorAll('.timeline-marker-dot').forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const time = parseFloat(dot.getAttribute('data-time'));
+        player.seekTo(time, true);
+        gestureEngine.showMomentaryFeedback(`⭐ Jumped to bookmark @ ${player.formatTime(time)}`, 'info');
+      });
+    });
   }
 
   renderBookmarks();
@@ -691,6 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const pct = (state.currentTime / state.duration) * 100;
       timelineProgress.style.width = `${pct}%`;
       timelineThumb.style.left = `${pct}%`;
+      renderTimelineMarkers();
     }
 
     speedPills.forEach(pill => {
