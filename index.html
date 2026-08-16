@@ -12,12 +12,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=3.8" />
+  <link rel="stylesheet" href="style.css?v=4.2" />
 
   <script>
     function openHelpModal() {
       var m = document.getElementById('helpModal');
       if (m) {
+        if (typeof m.showModal === 'function') {
+          try { if (!m.open) m.showModal(); } catch(e) {}
+        }
         m.style.setProperty('display', 'flex', 'important');
         m.style.setProperty('opacity', '1', 'important');
         m.style.setProperty('visibility', 'visible', 'important');
@@ -28,6 +31,9 @@
     function closeHelpModal() {
       var m = document.getElementById('helpModal');
       if (m) {
+        if (typeof m.close === 'function') {
+          try { if (m.open) m.close(); } catch(e) {}
+        }
         m.style.setProperty('display', 'none', 'important');
         m.style.setProperty('opacity', '0', 'important');
         m.style.setProperty('visibility', 'hidden', 'important');
@@ -60,7 +66,7 @@
       </a>
 
       <!-- Guide Button on Left -->
-      <button id="openHelpBtn" class="top-left-guide-btn" onclick="openHelpModal();" title="Gesture Guide & Shortcuts (?)">
+      <button type="button" id="openHelpBtn" class="top-left-guide-btn" onclick="openHelpModal();" ontouchend="openHelpModal();" title="Gesture Guide & Shortcuts (?)">
         <span>💡 Guide</span>
         <span class="kbd">?</span>
       </button>
@@ -84,7 +90,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v4.1</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v4.2</div>
     </div>
   </header>
 
@@ -397,14 +403,14 @@
   </main>
 
   <!-- Help & Gesture Guide Modal -->
-  <div id="helpModal" class="modal-backdrop" style="display: none;" onclick="if(event.target===this)closeHelpModal();">
+  <dialog id="helpModal" class="help-dialog" onclick="if(event.target===this)closeHelpModal();">
     <div class="modal-card">
       <div class="modal-title">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <span style="font-size: 1.25rem;">🎮</span>
           <span>Gesture Guide & Keyboard Controls</span>
         </div>
-        <button id="closeHelpBtn" class="btn-icon modal-close-btn" onclick="closeHelpModal();" title="Close (Esc)">✕</button>
+        <button id="closeHelpBtn" type="button" class="btn-icon modal-close-btn" onclick="closeHelpModal();" title="Close (Esc)">✕</button>
       </div>
 
       <!-- Gesture Diagrams -->
@@ -461,12 +467,12 @@
       </div>
 
     </div>
-  </div>
+  </dialog>
 
   <!-- Scripts -->
-  <script src="recommendations.js?v=3.8"></script>
-  <script src="player.js?v=3.8"></script>
-  <script src="gesture-engine.js?v=3.8"></script>
-  <script src="app.js?v=3.8"></script>
+  <script src="recommendations.js?v=4.2"></script>
+  <script src="player.js?v=4.2"></script>
+  <script src="gesture-engine.js?v=4.2"></script>
+  <script src="app.js?v=4.2"></script>
 </body>
 </html>

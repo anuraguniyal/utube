@@ -149,9 +149,15 @@ body {
   align-items: center;
   gap: 0.45rem;
   transition: all var(--transition-fast);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  position: relative;
+  z-index: 50;
 }
 
-.top-left-guide-btn:hover {
+.top-left-guide-btn:hover,
+.top-left-guide-btn:active {
   background: rgba(59, 130, 246, 0.25);
   color: #fff;
   border-color: var(--accent-blue);
@@ -1986,28 +1992,45 @@ input:checked + .toggle-slider:before {
   color: #f87171;
 }
 
-/* Modals */
+/* Native Dialog & Modal Overlay */
+dialog#helpModal,
 .modal-backdrop {
   position: fixed;
   inset: 0;
+  border: none;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  z-index: 99999 !important;
-  display: flex;
+  z-index: 999999 !important;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0;
+  box-sizing: border-box;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
+dialog#helpModal[open],
+dialog#helpModal.active,
 .modal-backdrop.active {
+  display: flex !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
+}
+
+dialog#helpModal::backdrop {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .modal-card {
