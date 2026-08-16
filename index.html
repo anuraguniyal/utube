@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=3.6" />
 </head>
 <body>
   <!-- Ambient background glow effect -->
@@ -35,7 +35,7 @@
       </a>
 
       <!-- Guide Button on Left -->
-      <button id="openHelpBtn" class="top-left-guide-btn" onclick="document.getElementById('helpModal').classList.add('active');" title="Gesture Guide & Shortcuts (?)">
+      <button id="openHelpBtn" class="top-left-guide-btn" onclick="openHelpModal();" title="Gesture Guide & Shortcuts (?)">
         <span>💡 Guide</span>
         <span class="kbd">?</span>
       </button>
@@ -59,7 +59,7 @@
 
     <!-- Right Section: Version Badge & Status -->
     <div class="header-right">
-      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.5</div>
+      <div class="version-badge" id="appVersionBadge" title="UTUBE Application Version">v3.6</div>
     </div>
   </header>
 
@@ -372,11 +372,11 @@
   </main>
 
   <!-- Help & Gesture Guide Modal -->
-  <div id="helpModal" class="modal-backdrop">
+  <div id="helpModal" class="modal-backdrop" onclick="if(event.target===this)closeHelpModal();">
     <div class="modal-card">
       <div class="modal-title">
         <span>🎮 Gesture Guide & Controls</span>
-        <button id="closeHelpBtn" class="btn-icon" onclick="document.getElementById('helpModal').classList.remove('active');" style="font-size: 1.2rem;">✕</button>
+        <button id="closeHelpBtn" class="btn-icon" onclick="closeHelpModal();" style="font-size: 1.2rem;">✕</button>
       </div>
 
       <!-- Gesture Diagrams -->
@@ -423,10 +423,35 @@
     </div>
   </div>
 
+  <script>
+    function openHelpModal() {
+      var m = document.getElementById('helpModal');
+      if (m) {
+        m.style.display = 'flex';
+        m.style.opacity = '1';
+        m.style.visibility = 'visible';
+        m.style.pointerEvents = 'auto';
+        m.classList.add('active');
+      }
+    }
+    function closeHelpModal() {
+      var m = document.getElementById('helpModal');
+      if (m) {
+        m.style.display = 'none';
+        m.style.opacity = '0';
+        m.style.visibility = 'hidden';
+        m.style.pointerEvents = 'none';
+        m.classList.remove('active');
+      }
+    }
+    window.openHelpModal = openHelpModal;
+    window.closeHelpModal = closeHelpModal;
+  </script>
+
   <!-- Scripts -->
-  <script src="recommendations.js"></script>
-  <script src="player.js"></script>
-  <script src="gesture-engine.js"></script>
-  <script src="app.js"></script>
+  <script src="recommendations.js?v=3.6"></script>
+  <script src="player.js?v=3.6"></script>
+  <script src="gesture-engine.js?v=3.6"></script>
+  <script src="app.js?v=3.6"></script>
 </body>
 </html>
