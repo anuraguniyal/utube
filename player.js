@@ -15,19 +15,24 @@ class PlayerController {
   constructor() {
     this.player = null;
     this.isReady = false;
-    this.videoId = 'LXb3EKWsInQ';
+    
+    // Restore last video & timestamp from localStorage
+    const lastVideoData = this.loadLastVideoState();
+    this.videoId = lastVideoData.videoId || 'LXb3EKWsInQ';
+    this.initialStartSeconds = lastVideoData.time || 0;
+    this.lastSavedPosition = this.initialStartSeconds;
     
     this.pollInterval = null;
     this.reverseInterval = null;
     this.forwardBoostInterval = null;
 
-    this.virtualTime = 0;
+    this.virtualTime = this.initialStartSeconds;
     this.lastNativeRate = 1.0;
     this.wasPlayingBeforeReverse = true;
     
     this.state = {
       isPlaying: false,
-      currentTime: 0,
+      currentTime: this.initialStartSeconds,
       duration: 0,
       playbackRate: 1.0,
       continuousSpeed: 1.0,
@@ -81,6 +86,7 @@ class PlayerController {
           cc_load_policy: 1,
           cc_lang_pref: 'en',
           hl: 'en',
+          start: this.initialStartSeconds > 0 ? this.initialStartSeconds : 0,
           modestbranding: 1,
           rel: 0,
           origin: window.location.origin
@@ -92,6 +98,14 @@ class PlayerController {
             this.state.volume = this.player.getVolume() || 100;
             this.state.isMuted = this.player.isMuted ? this.player.isMuted() : false;
             
+            if (this.initialStartSeconds > 0) {
+              try {
+                this.player.seekTo(this.initialStartSeconds, true);
+                this.state.currentTime = this.initialStartSeconds;
+                this.virtualTime = this.initialStartSeconds;
+              } catch (e) {}
+            }
+
             if (this.pendingAutoplay) {
               this.pendingAutoplay = false;
               try { this.player.playVideo(); } catch (e) {}
@@ -134,6 +148,7 @@ class PlayerController {
         this.state.isPlaying = false;
       }
     }
+    this.saveLastVideoState();
     this.notifyState();
   }
 
@@ -147,6 +162,12 @@ class PlayerController {
           const time = this.player.getCurrentTime() || 0;
           this.state.currentTime = time;
           this.virtualTime = time;
+
+          // Throttled persistence of current video position
+          if (this.state.isPlaying && Math.abs(time - this.lastSavedPosition) >= 3) {
+            this.lastSavedPosition = time;
+            this.saveLastVideoState();
+          }
         }
 
         const dur = this.player.getDuration() || 0;
@@ -645,6 +666,29 @@ class PlayerController {
     } catch (e) {
       this.state.bookmarks = [];
     }
+  }
+
+  // --- Last Video & Session Persistence ---
+
+  saveLastVideoState() {
+    try {
+      localStorage.setItem('utube_last_video', JSON.stringify({
+        videoId: this.videoId,
+        time: Math.floor(this.state.currentTime || 0),
+        updatedAt: new Date().toISOString()
+      }));
+    } catch (e) {}
+  }
+
+  loadLastVideoState() {
+    try {
+      const raw = localStorage.getItem('utube_last_video');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.videoId) return parsed;
+      }
+    } catch (e) {}
+    return { videoId: 'LXb3EKWsInQ', time: 0 };
   }
 
   subscribe(callback) {

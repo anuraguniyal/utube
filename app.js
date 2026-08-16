@@ -175,6 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Restore initial video metadata and URL bar on page load
+  updateVideoMetadata();
+  if (urlInput && player.videoId) {
+    urlInput.value = `https://youtu.be/${player.videoId}`;
+  }
+  updateActiveCard(player.videoId);
+
   // 4. Video Resizing & Aspect Ratio Controls
   function setPlayerWidth(widthStr, activeBtn = null) {
     playerTheaterWrapper.style.width = widthStr;
