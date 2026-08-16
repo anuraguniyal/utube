@@ -722,22 +722,22 @@ document.addEventListener('DOMContentLoaded', () => {
       const isCurrent = group.isCurrent;
       const groupHeader = isCurrent
         ? `
-          <div class="bm-group-header">
-            <div class="bm-group-title" title="${group.title}">
+          <div class="bm-group-header" style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);width:100%;box-sizing:border-box;">
+            <div class="bm-group-title" title="${group.title}" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:0.775rem;font-weight:700;color:#fff;min-width:0;flex:1;overflow:hidden;">
               <span>▶</span>
-              <span class="bm-group-name">Current Video</span>
-              <span class="bm-count-pill">${group.items.length}</span>
+              <span class="bm-group-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#93c5fd;flex:1;min-width:0;">Current Video</span>
+              <span class="bm-count-pill" style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;background:rgba(255,255,255,0.1);color:var(--text-dim);padding:1px 6px;border-radius:9999px;flex-shrink:0;">${group.items.length}</span>
             </div>
           </div>
         `
         : `
-          <div class="bm-group-header">
-            <div class="bm-group-title" title="${group.title}">
+          <div class="bm-group-header" style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);width:100%;box-sizing:border-box;">
+            <div class="bm-group-title" title="${group.title}" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:0.775rem;font-weight:700;color:#fff;min-width:0;flex:1;overflow:hidden;">
               <span>📺</span>
-              <span class="bm-group-name">${group.title}</span>
-              <span class="bm-count-pill">${group.items.length}</span>
+              <span class="bm-group-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e2e8f0;flex:1;min-width:0;">${group.title}</span>
+              <span class="bm-count-pill" style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;background:rgba(255,255,255,0.1);color:var(--text-dim);padding:1px 6px;border-radius:9999px;flex-shrink:0;">${group.items.length}</span>
             </div>
-            <button class="btn-ghost bm-play-video-btn" data-vid="${group.videoId}" style="padding: 2px 8px; font-size: 0.68rem; border-radius: var(--radius-full);" title="Load video: ${group.title}">
+            <button class="bm-play-video-btn" data-vid="${group.videoId}" style="display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 8px;font-size:0.68rem;font-weight:700;border-radius:9999px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;cursor:pointer;flex-shrink:0;margin-left:6px;white-space:nowrap;" title="Load video: ${group.title}">
               ▶ Play
             </button>
           </div>
@@ -746,18 +746,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const rows = group.items.map(bm => {
         const url = bm.videoUrl || `https://youtu.be/${bm.videoId}?t=${Math.floor(bm.time)}`;
         return `
-          <div class="bookmark-row">
-            <div class="bm-row-left" data-time="${bm.time}" data-vid="${bm.videoId}" title="Click to play from ${player.formatTime(bm.time)}">
-              <span class="bookmark-time-tag">${player.formatTime(bm.time)}</span>
+          <div class="bookmark-row" style="display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;min-height:34px;padding:3px 6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.05);border-radius:6px;gap:6px;">
+            <div class="bm-row-left" data-time="${bm.time}" data-vid="${bm.videoId}" title="Click to play from ${player.formatTime(bm.time)}" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;flex-shrink:0;">
+              <span class="bookmark-time-tag" style="font-family:var(--font-mono);font-size:0.75rem;font-weight:800;background:rgba(250,204,21,0.18);color:#fde047;border:1px solid rgba(250,204,21,0.4);padding:2px 6px;border-radius:4px;letter-spacing:0.03em;display:inline-block;line-height:1.2;">${player.formatTime(bm.time)}</span>
             </div>
-            <div class="bm-row-actions">
-              <button class="bm-row-play-btn" data-time="${bm.time}" data-vid="${bm.videoId}" title="Play from ${player.formatTime(bm.time)}">
-                <span>▶ Play</span>
+            <div class="bm-row-actions" style="display:inline-flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:flex-end;gap:5px;flex-shrink:0;">
+              <button class="bm-row-play-btn" data-time="${bm.time}" data-vid="${bm.videoId}" title="Play from ${player.formatTime(bm.time)}" style="display:inline-flex;flex-direction:row;align-items:center;justify-content:center;height:24px;padding:0 8px;font-size:0.7rem;font-weight:700;border-radius:9999px;color:#93c5fd;border:1px solid rgba(59,130,246,0.35);background:rgba(59,130,246,0.12);cursor:pointer;white-space:nowrap;line-height:1;">
+                ▶ Play
               </button>
-              <button class="btn-icon copy-marker-btn" data-url="${url}" title="Copy Timestamp Link: ${url}">
+              <button class="copy-marker-btn" data-url="${url}" title="Copy Link: ${url}" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;border-radius:4px;font-size:0.75rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#38bdf8;cursor:pointer;line-height:1;padding:0;">
                 <span class="marker-copy-icon">🔗</span>
               </button>
-              <button class="btn-icon delete-marker-btn" data-id="${bm.id}" title="Remove Marker" style="color: #f87171;">
+              <button class="delete-marker-btn" data-id="${bm.id}" title="Remove Marker" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;border-radius:4px;font-size:0.75rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#f87171;cursor:pointer;line-height:1;padding:0;">
                 ✕
               </button>
             </div>
@@ -766,9 +766,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }).join('');
 
       html += `
-        <div class="bm-group-container ${isCurrent ? 'is-current' : ''}">
+        <div class="bm-group-container ${isCurrent ? 'is-current' : ''}" style="display:flex;flex-direction:column;gap:5px;background:rgba(255,255,255,0.02);border:1px solid ${isCurrent ? 'rgba(59,130,246,0.35)' : 'var(--border-subtle)'};border-radius:8px;padding:7px 8px;width:100%;box-sizing:border-box;">
           ${groupHeader}
-          <div class="bm-group-items">
+          <div class="bm-group-items" style="display:flex;flex-direction:column;gap:4px;width:100%;">
             ${rows}
           </div>
         </div>
